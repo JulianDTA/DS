@@ -3,48 +3,74 @@
 #include "card.h"
 #include "combat.h"
 
-// Headers autogenerados por GRIT (mismo nombre que los PNG)
+// Headers autogenerados por GRIT
 #include "touch_bg.h"
 #include "board_bg.h"
 
 bool isMainOnBottom = false;
+PrintConsole topScreenConsole;
+PrintConsole bottomScreenConsole;
 
 void init_graphics() {
-    // Configurar ambos motores para soportar fondos Bitmap de 8-bits
-    videoSetMode(MODE_5_2D | DISPLAY_BG3_ACTIVE);
-    videoSetModeSub(MODE_5_2D | DISPLAY_BG3_ACTIVE);
+    // Motor Principal: 3D en la capa superior, y BG3 para el fondo de la plaza
+    videoSetMode(MODE_0_3D | DISPLAY_BG3_ACTIVE | DISPLAY_BG0_ACTIVE);
     
-    // Asignar bancos de VRAM
-    vramSetBankA(VRAM_A_TEXTURE); // 3D
-    vramSetBankB(VRAM_B_MAIN_BG); // Fondo Pantalla Superior
-    vramSetBankC(VRAM_C_SUB_BG);  // Fondo Pantalla Inferior
+    // Motor Secundario: 2D para la UI táctil y texto
+    videoSetModeSub(MODE_0_2D | DISPLAY_BG3_ACTIVE | DISPLAY_BG0_ACTIVE);
     
-    // Cargar Fondo Táctil (UI)
-    int bg3_sub = bgInitSub(3, BgType_Bmp8, BgSize_B8_256x256, 0, 0);
-    dmaCopy(touch_bgBitmap, bgGetGfxPtr(bg3_sub), touch_bgBitmapLen);
+    // Bancos de Memoria VRAM
+    vramSetBankA(VRAM_A_TEXTURE); // Texturas 3D
+    vramSetBankB(VRAM_B_MAIN_BG); // Fondos Main (Top)
+    vramSetBankC(VRAM_C_SUB_BG);  // Fondos Sub (Bottom)
+    
+    // --- FONDO TABLERO TACTIL (Sub Engine) ---
+    // Usamos BgType_Text8bpp porque Mode 0 lo exige
+    int bg3_sub = bgInitSub(3, BgType_Text8bpp, BgSize_T_256x256, 0, 1);
+    dmaCopy(touch_bgTiles, bgGetGfxPtr(bg3_sub), touch_bgTilesLen);
+    dmaCopy(touch_bgMap, bgGetMapPtr(bg3_sub), touch_bgMapLen);
     dmaCopy(touch_bgPal, BG_PALETTE_SUB, touch_bgPalLen);
     
-    // Cargar Fondo del Tablero
-    int bg3_main = bgInit(3, BgType_Bmp8, BgSize_B8_256x256, 0, 0);
-    dmaCopy(board_bgBitmap, bgGetGfxPtr(bg3_main), board_bgBitmapLen);
+    // Consola de Texto para el HUD en Español (Sub Engine BG0)
+    consoleInit(&bottomScreenConsole, 0, BgType_Text4bpp, BgSize_T_256x256, 31, 0, false, true);
+    
+    // --- FONDO PLAZA 3D (Main Engine) ---
+    int bg3_main = bgInit(3, BgType_Text8bpp, BgSize_T_256x256, 0, 1);
+    dmaCopy(board_bgTiles, bgGetGfxPtr(bg3_main), board_bgTilesLen);
+    dmaCopy(board_bgMap, bgGetMapPtr(bg3_main), board_bgMapLen);
     dmaCopy(board_bgPal, BG_PALETTE, board_bgPalLen);
     
-    // Configurar Motor 3D (Se renderizará sobre el fondo Main)
+    // --- MOTOR 3D ---
     glInit();
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrthof32(0, 256, 192, 0, -1, 1);
     
-    // Alpha 0 = Transparente para poder ver el fondo 2D que pusimos atrás
-    glClearColor(0, 0, 0, 0); 
+    glClearColor(0, 0, 0, 0); // Transparente para que se vea la Plaza de San Francisco atrás
     glClearPolyID(63);
     glClearDepth(0x7FFF);
     glViewport(0, 0, 255, 191);
 }
 
+void print_hud() {
+    consoleSelect(&bottomScreenConsole);
+    consoleClear();
+    
+    PlayerState* p1 = get_player_state(0);
+    PlayerState* p2 = get_player_state(1);
+    
+    printf("\n\n\n\n\n\n\n\n"); // Bajamos el texto para que cuadre con la madera
+    printf("     === ECUA TRIALS ===\n\n");
+    printf(" JUGADOR : HP %d/10 | Escudo %d\n", p1->hp, p1->shield);
+    printf(" ENERGIA : %d/10\n\n", p1->energy);
+    printf(" RIVAL   : HP %d/10 | Escudo %d\n", p2->hp, p2->shield);
+}
+
 int main(void) {
     init_graphics();
     init_combat();
+    get_player_state(0)->energy = 10;
+    
+    print_hud();
     
     while (1) {
         swiWaitForVBlank();
@@ -55,6 +81,15 @@ int main(void) {
             isMainOnBottom = !isMainOnBottom;
             if (isMainOnBottom) lcdMainOnBottom();
             else lcdMainOnTop();
+        }
+        
+        if (keys & KEY_A) {
+            play_card(0, &CartaDB[0]);
+            print_hud();
+        }
+        if (keys & KEY_B) {
+            play_card(0, &CartaDB[2]);
+            print_hud();
         }
         
         glFlush(0);
