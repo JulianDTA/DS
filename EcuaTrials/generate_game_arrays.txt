@@ -1,0 +1,146 @@
+static const char* NOMBRES_PERSONAJES[] = {"Cantuna", "El Tin Tin", "La Tunda", "Padre Almeida", "Dama Tapada", "Maria Angula", "Gallo Catedral", "Cura sin Cabeza", "El Chuzalongo", "La Llorona", "Guagua Auca", "Viuda Tamarindo"};
+
+static const CardData* get_deck_for_char(int id) {
+    switch(id) {
+        case 0: return CARTAS_CANTUNA;
+        case 1: return CARTAS_TINTIN;
+        case 2: return CARTAS_TUNDA;
+        case 3: return CARTAS_ALMEIDA;
+        case 4: return CARTAS_DAMATAPADA;
+        case 5: return CARTAS_MARIANGULA;
+        case 6: return CARTAS_GALLO;
+        case 7: return CARTAS_CURA;
+        case 8: return CARTAS_CHUZALONGO;
+        case 9: return CARTAS_LLORONA;
+        case 10: return CARTAS_GUAGUAAUCA;
+        case 11: return CARTAS_VIUDA;
+        default: return CARTAS_CANTUNA;
+    }
+}
+
+static int get_deck_size_for_char(int id) {
+    switch(id) {
+        case 0: return CANTUNA_DECK_SIZE;
+        case 1: return TINTIN_DECK_SIZE;
+        case 2: return TUNDA_DECK_SIZE;
+        case 3: return ALMEIDA_DECK_SIZE;
+        case 4: return DAMATAPADA_DECK_SIZE;
+        case 5: return MARIANGULA_DECK_SIZE;
+        case 6: return GALLO_DECK_SIZE;
+        case 7: return CURA_DECK_SIZE;
+        case 8: return CHUZALONGO_DECK_SIZE;
+        case 9: return LLORONA_DECK_SIZE;
+        case 10: return GUAGUAAUCA_DECK_SIZE;
+        case 11: return VIUDA_DECK_SIZE;
+        default: return CANTUNA_DECK_SIZE;
+    }
+}
+
+case 0:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[0]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "TANQUE");
+    printf("   %s\n", "Constructor legendario");
+    printf("   %s\n", "Pacto con el diablo");
+    printf("   %s\n", "Escudos fuertes");
+    break;
+case 1:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[1]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "AGRESOR");
+    printf("   %s\n", "Duende travieso");
+    printf("   %s\n", "Aparece en las sombras");
+    printf("   %s\n", "Cadenas de combos");
+    break;
+case 2:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[2]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "CONTROL");
+    printf("   %s\n", "Bruja del manglar");
+    printf("   %s\n", "Pierna de molinillo");
+    printf("   %s\n", "Curacion y drenaje");
+    break;
+case 3:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[3]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "COMBO");
+    printf("   %s\n", "Sacerdote rebelde");
+    printf("   %s\n", "Sale de farra");
+    printf("   %s\n", "Mucho robo de cartas");
+    break;
+case 4:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[4]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "TERROR");
+    printf("   %s\n", "Mujer misteriosa");
+    printf("   %s\n", "Rostro calaverico");
+    printf("   %s\n", "Debuffs y miedo");
+    break;
+case 5:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[5]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "AGRESOR");
+    printf("   %s\n", "Nina golosa");
+    printf("   %s\n", "Robo tripas del muerto");
+    printf("   %s\n", "Ataques freneticos");
+    break;
+case 6:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[6]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "EQUILIBRADO");
+    printf("   %s\n", "Gallo de oro");
+    printf("   %s\n", "Canta en la iglesia");
+    printf("   %s\n", "Danio y velocidad");
+    break;
+case 7:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[7]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "MAGIA");
+    printf("   %s\n", "Sacerdote maldito");
+    printf("   %s\n", "No tiene cabeza");
+    printf("   %s\n", "Magia oscura pura");
+    break;
+case 8:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[8]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "SALVAJE");
+    printf("   %s\n", "Criatura del Paramo");
+    printf("   %s\n", "Agresividad pura");
+    printf("   %s\n", "Nula defensa");
+    break;
+case 9:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[9]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "TRISTEZA");
+    printf("   %s\n", "Madre en pena");
+    printf("   %s\n", "Busca a sus hijos");
+    printf("   %s\n", "Mucha curacion");
+    break;
+case 10:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[10]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "SORPRESA");
+    printf("   %s\n", "Bebe fantasma");
+    printf("   %s\n", "Demonio enganoso");
+    printf("   %s\n", "Robo y dano");
+    break;
+case 11:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[11]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "TRAMPA");
+    printf("   %s\n", "Aparece en Guayaquil");
+    printf("   %s\n", "Debajo del tamarindo");
+    printf("   %s\n", "Control total");
+    break;

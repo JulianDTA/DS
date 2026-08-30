@@ -6,13 +6,22 @@
 // ECUATRIALS - Flujo del Juego + Pantalla de Lore
 // =====================================================
 
-static const char* NOMBRES_PERSONAJES[] = {"Cantuna", "Tin Tin", "La Tunda"};
+static const char* NOMBRES_PERSONAJES[] = {"Cantuna", "El Tin Tin", "La Tunda", "Padre Almeida", "Dama Tapada", "Maria Angula", "Gallo Catedral", "Cura sin Cabeza", "El Chuzalongo", "La Llorona", "Guagua Auca", "Viuda Tamarindo"};
 
 static const CardData* get_deck_for_char(int id) {
     switch(id) {
         case 0: return CARTAS_CANTUNA;
         case 1: return CARTAS_TINTIN;
         case 2: return CARTAS_TUNDA;
+        case 3: return CARTAS_ALMEIDA;
+        case 4: return CARTAS_DAMATAPADA;
+        case 5: return CARTAS_MARIANGULA;
+        case 6: return CARTAS_GALLO;
+        case 7: return CARTAS_CURA;
+        case 8: return CARTAS_CHUZALONGO;
+        case 9: return CARTAS_LLORONA;
+        case 10: return CARTAS_GUAGUAAUCA;
+        case 11: return CARTAS_VIUDA;
         default: return CARTAS_CANTUNA;
     }
 }
@@ -22,6 +31,15 @@ static int get_deck_size_for_char(int id) {
         case 0: return CANTUNA_DECK_SIZE;
         case 1: return TINTIN_DECK_SIZE;
         case 2: return TUNDA_DECK_SIZE;
+        case 3: return ALMEIDA_DECK_SIZE;
+        case 4: return DAMATAPADA_DECK_SIZE;
+        case 5: return MARIANGULA_DECK_SIZE;
+        case 6: return GALLO_DECK_SIZE;
+        case 7: return CURA_DECK_SIZE;
+        case 8: return CHUZALONGO_DECK_SIZE;
+        case 9: return LLORONA_DECK_SIZE;
+        case 10: return GUAGUAAUCA_DECK_SIZE;
+        case 11: return VIUDA_DECK_SIZE;
         default: return CANTUNA_DECK_SIZE;
     }
 }
@@ -51,15 +69,15 @@ void game_update(GameState* gs, int keys_down, touchPosition* touch) {
         case GAME_SELECT_CHAR:
             if (keys_down & KEY_LEFT) {
                 gs->personaje_elegido--;
-                if (gs->personaje_elegido < 0) gs->personaje_elegido = 2;
+                if (gs->personaje_elegido < 0) gs->personaje_elegido = 11;
             }
             if (keys_down & KEY_RIGHT) {
                 gs->personaje_elegido++;
-                if (gs->personaje_elegido > 2) gs->personaje_elegido = 0;
+                if (gs->personaje_elegido > 11) gs->personaje_elegido = 0;
             }
 
             if (keys_down & KEY_A) {
-                gs->rival_elegido = (gs->personaje_elegido + 1) % 3;
+                gs->rival_elegido = (gs->personaje_elegido + 1) % 12;
 
                 combat_init(&gs->combate,
                     NOMBRES_PERSONAJES[gs->personaje_elegido],
@@ -117,57 +135,102 @@ void game_draw_top(GameState* gs) {
         case GAME_SELECT_CHAR:
             printf("\n\n");
             switch (gs->personaje_elegido) {
-                case 0:
-                    printf("   ========================\n");
-                    printf("        C A N T U N A\n");
-                    printf("   ========================\n\n");
-                    printf("   Cuenta la leyenda que\n");
-                    printf("   Cantuna hizo un pacto\n");
-                    printf("   con el diablo para\n");
-                    printf("   construir la Iglesia de\n");
-                    printf("   San Francisco en Quito\n");
-                    printf("   en una sola noche.\n\n");
-                    printf("   Pero el astuto constructor\n");
-                    printf("   quito un ladrillo antes\n");
-                    printf("   del amanecer, y el diablo\n");
-                    printf("   no pudo reclamar su alma.\n\n");
-                    printf("   Rol: TANQUE\n");
-                    printf("   Escudos fuertes, golpes\n");
-                    printf("   devastadores.\n");
-                    break;
-                case 1:
-                    printf("   ========================\n");
-                    printf("       E L  T I N  T I N\n");
-                    printf("   ========================\n\n");
-                    printf("   Un duende travieso de la\n");
-                    printf("   sierra ecuatoriana.\n");
-                    printf("   Usa un sombrero enorme\n");
-                    printf("   y aparece en los caminos\n");
-                    printf("   oscuros para asustar a\n");
-                    printf("   los viajeros solitarios.\n\n");
-                    printf("   Es rapido, escurridizo,\n");
-                    printf("   y le encanta robar cosas\n");
-                    printf("   de los bolsillos.\n\n");
-                    printf("   Rol: AGRESOR\n");
-                    printf("   Ataques rapidos, cadenas\n");
-                    printf("   de combos.\n");
-                    break;
-                case 2:
-                    printf("   ========================\n");
-                    printf("       L A  T U N D A\n");
-                    printf("   ========================\n\n");
-                    printf("   Espiritu femenino de la\n");
-                    printf("   costa esmeraldena. Tiene\n");
-                    printf("   una pierna normal y otra\n");
-                    printf("   de molinillo de madera.\n\n");
-                    printf("   Atrae a los ninos al\n");
-                    printf("   manglar ofreciendoles\n");
-                    printf("   camarones, y los hipnotiza\n");
-                    printf("   con cantos ancestrales.\n\n");
-                    printf("   Rol: CONTROL\n");
-                    printf("   Curacion poderosa,\n");
-                    printf("   drenaje de vida.\n");
-                    break;
+
+case 0:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[0]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "TANQUE");
+    printf("   %s\n", "Constructor legendario");
+    printf("   %s\n", "Pacto con el diablo");
+    printf("   %s\n", "Escudos fuertes");
+    break;
+case 1:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[1]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "AGRESOR");
+    printf("   %s\n", "Duende travieso");
+    printf("   %s\n", "Aparece en las sombras");
+    printf("   %s\n", "Cadenas de combos");
+    break;
+case 2:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[2]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "CONTROL");
+    printf("   %s\n", "Bruja del manglar");
+    printf("   %s\n", "Pierna de molinillo");
+    printf("   %s\n", "Curacion y drenaje");
+    break;
+case 3:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[3]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "COMBO");
+    printf("   %s\n", "Sacerdote rebelde");
+    printf("   %s\n", "Sale de farra");
+    printf("   %s\n", "Mucho robo de cartas");
+    break;
+case 4:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[4]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "TERROR");
+    printf("   %s\n", "Mujer misteriosa");
+    printf("   %s\n", "Rostro calaverico");
+    printf("   %s\n", "Debuffs y miedo");
+    break;
+case 5:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[5]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "AGRESOR");
+    printf("   %s\n", "Nina golosa");
+    printf("   %s\n", "Robo tripas del muerto");
+    printf("   %s\n", "Ataques freneticos");
+    break;
+case 6:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[6]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "EQUILIBRADO");
+    printf("   %s\n", "Gallo de oro");
+    printf("   %s\n", "Canta en la iglesia");
+    printf("   %s\n", "Danio y velocidad");
+    break;
+case 7:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[7]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "MAGIA");
+    printf("   %s\n", "Sacerdote maldito");
+    printf("   %s\n", "No tiene cabeza");
+    printf("   %s\n", "Magia oscura pura");
+    break;
+case 8:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[8]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "SALVAJE");
+    printf("   %s\n", "Criatura del Paramo");
+    printf("   %s\n", "Agresividad pura");
+    printf("   %s\n", "Nula defensa");
+    break;
+case 9:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[9]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "TRISTEZA");
+    printf("   %s\n", "Madre en pena");
+    printf("   %s\n", "Busca a sus hijos");
+    printf("   %s\n", "Mucha curacion");
+    break;
+case 10:
+    printf("   ========================\n");
+    printf("   %s\n", NOMBRES_PERSONAJES[10]);
+    printf("   ========================\n\n");
+    printf("   Rol: %s\n", "SORPRESA");
             }
             break;
 
@@ -204,9 +267,11 @@ void game_draw_top(GameState* gs) {
                 printf("   %s\n", c->lore3);
 
                 printf("\n   ------- Controles -------\n");
-                printf("   A: Jugar esta carta\n");
-                if (!cs->ya_robo_turno && !cs->carta_jugada_este_turno)
-                    printf("   X: Robar 1 carta\n");
+                if (!cs->ya_robo_turno && !cs->carta_jugada_este_turno) {
+                    printf("   X: Robar 1 carta (OBLIGATORIO)\n");
+                } else {
+                    printf("   A: Jugar esta carta\n");
+                }
                 printf("   </>: Cambiar seleccion\n");
             } else if (cs->fase == COMBAT_WIN) {
                 printf("\n\n\n\n\n");
@@ -262,7 +327,10 @@ void game_draw_bottom(GameState* gs) {
         case GAME_SELECT_CHAR:
             printf("\n\n   ELIGE TU LEYENDA\n\n");
 
-            for (int i = 0; i < 3; i++) {
+            int start_idx = gs->personaje_elegido - 1;
+            if (start_idx < 0) start_idx = 0;
+            if (start_idx > 12 - 3) start_idx = 12 - 3;
+            for (int i = start_idx; i < start_idx + 3; i++) {
                 if (i == gs->personaje_elegido) {
                     printf("   >> %s <<\n", NOMBRES_PERSONAJES[i]);
                 } else {

@@ -6,7 +6,6 @@
 
 // =====================================================
 // ECUATRIALS - Sistema de Cartas
-// Inspirado en Dungeon Mayhem + Hearthstone
 // =====================================================
 
 // Tipos de efecto que una carta puede tener (una carta puede tener varios)
@@ -46,11 +45,27 @@ typedef struct {
 // Base de datos de todas las cartas del juego
 extern const CardData CARTAS_CANTUNA[];
 extern const int CANTUNA_DECK_SIZE;
-
 extern const CardData CARTAS_TINTIN[];
 extern const int TINTIN_DECK_SIZE;
-
 extern const CardData CARTAS_TUNDA[];
 extern const int TUNDA_DECK_SIZE;
+extern const CardData CARTAS_ALMEIDA[];
+extern const int ALMEIDA_DECK_SIZE;
+extern const CardData CARTAS_DAMATAPADA[];
+extern const int DAMATAPADA_DECK_SIZE;
+extern const CardData CARTAS_MARIANGULA[];
+extern const int MARIANGULA_DECK_SIZE;
+extern const CardData CARTAS_GALLO[];
+extern const int GALLO_DECK_SIZE;
+extern const CardData CARTAS_CURA[];
+extern const int CURA_DECK_SIZE;
+extern const CardData CARTAS_CHUZALONGO[];
+extern const int CHUZALONGO_DECK_SIZE;
+extern const CardData CARTAS_LLORONA[];
+extern const int LLORONA_DECK_SIZE;
+extern const CardData CARTAS_GUAGUAAUCA[];
+extern const int GUAGUAAUCA_DECK_SIZE;
+extern const CardData CARTAS_VIUDA[];
+extern const int VIUDA_DECK_SIZE;
 
 #endif

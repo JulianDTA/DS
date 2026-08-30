@@ -50,7 +50,7 @@ void combat_init(CombatState* cs,
     cs->log_count = 0;
     cs->ya_robo_turno = false;
 
-    // Mano inicial: 3 cartas cada uno (como Dungeon Mayhem)
+    // Mano inicial: 3 cartas cada uno
     deck_draw(&cs->jugador.deck, 3);
     deck_draw(&cs->rival.deck, 3);
 
@@ -216,7 +216,8 @@ void combat_update(CombatState* cs, int keys_down) {
             }
 
             // --- A: JUGAR CARTA ---
-            if ((keys_down & KEY_A) && cs->jugador.deck.mano_size > 0) {
+            // REGLA: Debes robar primero (X) antes de poder jugar
+            if ((keys_down & KEY_A) && cs->jugador.deck.mano_size > 0 && cs->ya_robo_turno) {
                 cs->jugador.puede_jugar_otra = false;
 
                 const CardData* carta = deck_play_from_hand(&cs->jugador.deck, cs->cursor);
