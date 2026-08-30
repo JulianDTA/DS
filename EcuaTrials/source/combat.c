@@ -113,24 +113,14 @@ void combat_resolve_card(CombatState* cs, Fighter* atacante, Fighter* defensor, 
 void combat_ai_turn(CombatState* cs) {
     Fighter* ai = &cs->rival;
 
-    // Robar 1 carta al inicio del turno
-    deck_draw(&ai->deck, 1);
-
-    // Regla de mano vacia
-    if (ai->deck.mano_size == 0) {
-        deck_draw(&ai->deck, 2);
-    }
-
     char buf[32];
     snprintf(buf, 31, "-- Turno de %s --", ai->nombre);
     combat_log(cs, buf);
 
-    // IA juega UNA carta (a menos que tenga PLAY_AGAIN)
-    bool puede_jugar = true;
-    while (puede_jugar && ai->deck.mano_size > 0) {
-        puede_jugar = false;
-        ai->puede_jugar_otra = false;
+    // IA juega UNA carta (si la anterior no tuvo PLAY_AGAIN, termina su turno en la maquina de estados)
+    ai->puede_jugar_otra = false;
 
+    if (ai->deck.mano_size > 0) {
         // Estrategia: priorizar curacion si HP < 4, sino atacar
         int mejor_idx = 0;
         int mejor_puntaje = -1;
@@ -154,17 +144,16 @@ void combat_ai_turn(CombatState* cs) {
 
         const CardData* carta = deck_play_from_hand(&ai->deck, mejor_idx);
         if (carta) {
-            snprintf(buf, 31, "%s juega %s", ai->nombre, carta->nombre);
+            snprintf(buf, 31, "IA: Juega %s", carta->nombre);
             combat_log(cs, buf);
             combat_resolve_card(cs, ai, &cs->jugador, carta);
 
-            // Solo sigue jugando si la carta tenia PLAY_AGAIN
-            if (ai->puede_jugar_otra && ai->deck.mano_size > 0) {
-                puede_jugar = true;
-                ai->puede_jugar_otra = false;
-                combat_log(cs, "Encadena otra carta!");
+            if (ai->puede_jugar_otra) {
+                combat_log(cs, "IA: Encadena otra carta!");
             }
         }
+    } else {
+        combat_log(cs, "IA no tiene cartas.");
     }
 }
 
@@ -251,18 +240,38 @@ void combat_update(CombatState* cs, int keys_down) {
 
                     // Si NO tenia PLAY_AGAIN, el turno termina automaticamente
                     combat_log(cs, "Fin de tu turno.");
+                    cs->ya_robo_turno = false;
                     cs->fase = COMBAT_ENEMY_TURN;
                 }
             }
             break;
 
         case COMBAT_ENEMY_TURN:
+            if (!cs->ya_robo_turno) {
+                deck_draw(&cs->rival.deck, 1);
+                if (cs->rival.deck.mano_size == 0) deck_draw(&cs->rival.deck, 2);
+                cs->ya_robo_turno = true;
+            }
+            // IA: Juega 1 sola carta y pasa a un estado de espera
             combat_ai_turn(cs);
+            cs->fase = COMBAT_ENEMY_WAIT;
+            break;
 
-            if (cs->jugador.hp <= 0) {
-                cs->fase = COMBAT_CHECK_WIN;
-            } else {
-                cs->fase = COMBAT_PLAYER_DRAW;
+        case COMBAT_ENEMY_WAIT:
+            if (keys_down & KEY_A) {
+                // Si la IA puede jugar otra carta por un combo, vuelve a su turno
+                if (cs->rival.puede_jugar_otra && cs->rival.deck.mano_size > 0) {
+                    cs->rival.puede_jugar_otra = false;
+                    cs->fase = COMBAT_ENEMY_TURN;
+                } else {
+                    // Si no, verificar K.O. o devolver turno al jugador
+                    combat_log(cs, "Fin del turno Rival.");
+                    if (cs->jugador.hp <= 0) {
+                        cs->fase = COMBAT_CHECK_WIN;
+                    } else {
+                        cs->fase = COMBAT_PLAYER_DRAW;
+                    }
+                }
             }
             break;
 
