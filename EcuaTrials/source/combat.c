@@ -1,87 +1,285 @@
 #include "combat.h"
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
-// [0] = Jugador Local, [1] = Rival / IA
-static PlayerState players[2];
+// =====================================================
+// ECUATRIALS - Gestor de Combate Completo
+// =====================================================
 
-void init_combat(void) {
-    for (int i = 0; i < 2; i++) {
-        players[i].max_hp = 10;
-        players[i].hp = 10;
-        players[i].shield = 0;
-        // Comenzamos con baja energía que irá subiendo cada turno
-        players[i].max_energy = 1;
-        players[i].energy = 1;
-    }
+static unsigned int ai_rng = 77777;
+static int ai_rand() {
+    ai_rng = ai_rng * 1103515245 + 12345;
+    return (ai_rng >> 16) & 0x7FFF;
 }
 
-PlayerState* get_player_state(int player_id) {
-    if (player_id < 0 || player_id > 1) return &players[0];
-    return &players[player_id];
-}
-
-void take_damage(int target_id, int amount) {
-    PlayerState* target = &players[target_id];
-    
-    if (amount <= 0) return;
-
-    printf("  -> Recibiendo %d de dano!\n", amount);
-
-    // Regla estricta: Romper escudo primero
-    if (target->shield > 0) {
-        if (amount >= target->shield) {
-            printf("  -> Escudo roto! (%d absorbido)\n", target->shield);
-            amount -= target->shield;
-            target->shield = 0;
-        } else {
-            target->shield -= amount;
-            printf("  -> Escudo resiste! (Restante: %d)\n", target->shield);
-            amount = 0;
+void combat_log(CombatState* cs, const char* msg) {
+    // Desplazar el log hacia arriba
+    if (cs->log_count >= 6) {
+        for (int i = 0; i < 5; i++) {
+            strncpy(cs->log[i], cs->log[i + 1], 31);
         }
+        cs->log_count = 5;
     }
+    strncpy(cs->log[cs->log_count], msg, 31);
+    cs->log[cs->log_count][31] = '\0';
+    cs->log_count++;
+}
 
-    // El daño sobrante va directamente a la vida (HP)
-    if (amount > 0) {
-        target->hp -= amount;
-        if (target->hp < 0) target->hp = 0;
-        printf("  -> Impacto a vida! (HP restante: %d)\n", target->hp);
+void combat_init(CombatState* cs,
+                 const char* nombre_jugador, const CardData* deck_jugador, int deck_size_j,
+                 const char* nombre_rival, const CardData* deck_rival, int deck_size_r) 
+{
+    memset(cs, 0, sizeof(CombatState));
+    
+    cs->jugador.nombre = nombre_jugador;
+    cs->jugador.hp = 10;
+    cs->jugador.max_hp = 10;
+    cs->jugador.puede_jugar_otra = false;
+    deck_init(&cs->jugador.deck, deck_jugador, deck_size_j);
+    
+    cs->rival.nombre = nombre_rival;
+    cs->rival.hp = 10;
+    cs->rival.max_hp = 10;
+    cs->rival.puede_jugar_otra = false;
+    deck_init(&cs->rival.deck, deck_rival, deck_size_r);
+    
+    cs->fase = COMBAT_START;
+    cs->turno = 0;
+    cs->cursor = 0;
+    cs->carta_jugada_este_turno = false;
+    cs->log_count = 0;
+    
+    // Mano inicial: 3 cartas cada uno (como Dungeon Mayhem)
+    deck_draw(&cs->jugador.deck, 3);
+    deck_draw(&cs->rival.deck, 3);
+    
+    ai_rng = (unsigned int)(REG_VCOUNT * 3571 + 13);
+    
+    combat_log(cs, "Comienza la batalla!");
+}
+
+void combat_resolve_card(CombatState* cs, Fighter* atacante, Fighter* defensor, const CardData* carta) {
+    char buf[32];
+    
+    // --- ESCUDO ---
+    if (carta->efectos & FX_SHIELD) {
+        deck_add_shield(&atacante->deck, carta->escudo);
+        snprintf(buf, 31, "+%d Escudo!", carta->escudo);
+        combat_log(cs, buf);
+    }
+    
+    // --- CURACION ---
+    if (carta->efectos & FX_HEAL) {
+        atacante->hp += carta->curacion;
+        if (atacante->hp > atacante->max_hp) 
+            atacante->hp = atacante->max_hp;
+        snprintf(buf, 31, "+%d HP! (HP:%d)", carta->curacion, atacante->hp);
+        combat_log(cs, buf);
+    }
+    
+    // --- ROBAR CARTAS ---
+    if (carta->efectos & FX_DRAW) {
+        deck_draw(&atacante->deck, carta->robar);
+        snprintf(buf, 31, "Roba %d carta(s)", carta->robar);
+        combat_log(cs, buf);
+    }
+    
+    // --- ATAQUE ---
+    if (carta->efectos & FX_ATTACK) {
+        int dano = carta->ataque;
         
-        if (target->hp == 0) {
-            printf("\n  [!] K.O.! LEYENDA DERROTADA!\n");
+        // Primero golpear escudos
+        int dano_restante = deck_damage_shields(&defensor->deck, dano);
+        
+        if (dano_restante < dano) {
+            int absorbido = dano - dano_restante;
+            snprintf(buf, 31, "Escudo absorbe %d!", absorbido);
+            combat_log(cs, buf);
+        }
+        
+        // El dano restante va al HP
+        if (dano_restante > 0) {
+            defensor->hp -= dano_restante;
+            if (defensor->hp < 0) defensor->hp = 0;
+            snprintf(buf, 31, "-%d HP! (%s:%d)", dano_restante, defensor->nombre, defensor->hp);
+            combat_log(cs, buf);
+        }
+    }
+    
+    // --- JUGAR OTRA VEZ ---
+    if (carta->efectos & FX_PLAY_AGAIN) {
+        atacante->puede_jugar_otra = true;
+    }
+}
+
+void combat_ai_turn(CombatState* cs) {
+    Fighter* ai = &cs->rival;
+    
+    // Robar 1 carta al inicio del turno
+    deck_draw(&ai->deck, 1);
+    
+    // Regla de mano vacia de Dungeon Mayhem
+    if (ai->deck.mano_size == 0) {
+        deck_draw(&ai->deck, 2);
+    }
+    
+    char buf[32];
+    snprintf(buf, 31, "-- Turno de %s --", ai->nombre);
+    combat_log(cs, buf);
+    
+    // IA: Jugar cartas. Siempre juega al menos una.
+    bool puede_jugar = true;
+    while (puede_jugar && ai->deck.mano_size > 0) {
+        puede_jugar = false;
+        ai->puede_jugar_otra = false;
+        
+        // Estrategia simple: priorizar curacion si HP < 4, sino atacar
+        int mejor_idx = 0;
+        int mejor_puntaje = -1;
+        
+        for (int i = 0; i < ai->deck.mano_size; i++) {
+            const CardData* c = ai->deck.mano[i];
+            int puntaje = 0;
+            
+            if (ai->hp <= 4 && (c->efectos & FX_HEAL)) puntaje += 10;
+            if (c->efectos & FX_ATTACK) puntaje += c->ataque;
+            if (c->efectos & FX_SHIELD) puntaje += 3;
+            if (c->efectos & FX_PLAY_AGAIN) puntaje += 4;
+            if (c->efectos & FX_DRAW) puntaje += 2;
+            
+            // Un poco de aleatoriedad
+            puntaje += ai_rand() % 3;
+            
+            if (puntaje > mejor_puntaje) {
+                mejor_puntaje = puntaje;
+                mejor_idx = i;
+            }
+        }
+        
+        const CardData* carta = deck_play_from_hand(&ai->deck, mejor_idx);
+        if (carta) {
+            snprintf(buf, 31, "%s juega %s", ai->nombre, carta->nombre);
+            combat_log(cs, buf);
+            combat_resolve_card(cs, ai, &cs->jugador, carta);
+            
+            // Verificar si puede jugar otra
+            if (ai->puede_jugar_otra) {
+                puede_jugar = true;
+                ai->puede_jugar_otra = false;
+            }
         }
     }
 }
 
-bool play_card(int player_id, const CardData* card) {
-    PlayerState* p = &players[player_id];
-    int enemy_id = (player_id == 0) ? 1 : 0;
-    
-    // Validar economía de energía
-    if (p->energy < card->costo) {
-        printf("  [X] Energia insuficiente (%d/%d) para %s\n", p->energy, card->costo, card->nombre);
-        return false;
+void combat_update(CombatState* cs, int keys_down) {
+    switch (cs->fase) {
+        case COMBAT_START:
+            cs->fase = COMBAT_PLAYER_DRAW;
+            break;
+            
+        case COMBAT_PLAYER_DRAW:
+            cs->turno++;
+            cs->carta_jugada_este_turno = false;
+            cs->jugador.puede_jugar_otra = false;
+            
+            // Robar 1 carta
+            deck_draw(&cs->jugador.deck, 1);
+            
+            // Regla de mano vacia de Dungeon Mayhem
+            if (cs->jugador.deck.mano_size == 0) {
+                deck_draw(&cs->jugador.deck, 2);
+            }
+            
+            {
+                char buf[32];
+                snprintf(buf, 31, "-- Tu Turno %d --", cs->turno);
+                combat_log(cs, buf);
+            }
+            
+            cs->cursor = 0;
+            cs->fase = COMBAT_PLAYER_TURN;
+            break;
+            
+        case COMBAT_PLAYER_TURN:
+            // Navegacion del cursor por la mano
+            if (keys_down & KEY_LEFT) {
+                cs->cursor--;
+                if (cs->cursor < 0) cs->cursor = cs->jugador.deck.mano_size - 1;
+            }
+            if (keys_down & KEY_RIGHT) {
+                cs->cursor++;
+                if (cs->cursor >= cs->jugador.deck.mano_size) cs->cursor = 0;
+            }
+            
+            // Jugar la carta seleccionada con A
+            if ((keys_down & KEY_A) && cs->jugador.deck.mano_size > 0) {
+                cs->jugador.puede_jugar_otra = false;
+                
+                const CardData* carta = deck_play_from_hand(&cs->jugador.deck, cs->cursor);
+                if (carta) {
+                    char buf[32];
+                    snprintf(buf, 31, "Juegas %s!", carta->nombre);
+                    combat_log(cs, buf);
+                    
+                    combat_resolve_card(cs, &cs->jugador, &cs->rival, carta);
+                    cs->carta_jugada_este_turno = true;
+                    
+                    // Ajustar cursor
+                    if (cs->cursor >= cs->jugador.deck.mano_size && cs->jugador.deck.mano_size > 0) {
+                        cs->cursor = cs->jugador.deck.mano_size - 1;
+                    }
+                    
+                    // Verificar K.O.
+                    if (cs->rival.hp <= 0) {
+                        cs->fase = COMBAT_CHECK_WIN;
+                        break;
+                    }
+                    
+                    // Si tiene efecto JUGAR OTRA VEZ, sigue siendo tu turno
+                    if (cs->jugador.puede_jugar_otra && cs->jugador.deck.mano_size > 0) {
+                        cs->jugador.puede_jugar_otra = false;
+                        combat_log(cs, "Juega otra vez!");
+                        // Se queda en COMBAT_PLAYER_TURN
+                        break;
+                    }
+                }
+            }
+            
+            // Pasar turno con B (solo si ya jugaste al menos una carta)
+            if ((keys_down & KEY_B) && cs->carta_jugada_este_turno) {
+                combat_log(cs, "Pasas el turno.");
+                cs->fase = COMBAT_ENEMY_TURN;
+            }
+            break;
+            
+        case COMBAT_ENEMY_TURN:
+            combat_ai_turn(cs);
+            
+            // Verificar K.O.
+            if (cs->jugador.hp <= 0) {
+                cs->fase = COMBAT_CHECK_WIN;
+            } else {
+                cs->fase = COMBAT_PLAYER_DRAW;
+            }
+            break;
+            
+        case COMBAT_CHECK_WIN:
+            if (cs->rival.hp <= 0) {
+                combat_log(cs, "VICTORIA!");
+                cs->fase = COMBAT_WIN;
+            } else if (cs->jugador.hp <= 0) {
+                combat_log(cs, "DERROTA...");
+                cs->fase = COMBAT_LOSE;
+            }
+            break;
+            
+        case COMBAT_WIN:
+        case COMBAT_LOSE:
+            // Esperar input para volver al menu
+            break;
+            
+        default:
+            break;
     }
-    
-    // Pagar costo de la carta
-    p->energy -= card->costo;
-    printf("\n  [+] Has jugado: %s\n", card->nombre);
-    
-    // Aplicar efectos defensivos y de curación (Buffs a sí mismo)
-    if (card->defense > 0) {
-        p->shield += card->defense;
-        printf("  -> Ganas %d de escudo. (Total: %d)\n", card->defense, p->shield);
-    }
-    
-    if (card->heal > 0) {
-        p->hp += card->heal;
-        if (p->hp > p->max_hp) p->hp = p->max_hp; // No curar por encima del máximo
-        printf("  -> Te curas %d HP. (Total: %d)\n", card->heal, p->hp);
-    }
-    
-    // Aplicar efectos ofensivos (Daño al rival)
-    if (card->damage > 0) {
-        take_damage(enemy_id, card->damage);
-    }
-    
-    return true;
 }
