@@ -8,27 +8,23 @@
 // =====================================================
 
 typedef enum {
-    GAME_TITLE,         // Pantalla de titulo
-    GAME_SELECT_CHAR,   // Seleccion de personaje
-    GAME_COMBAT,        // Combate
-    GAME_RESULT         // Pantalla de resultado (Victoria/Derrota)
+    GAME_TITLE,
+    GAME_SELECT_CHAR,
+    GAME_COMBAT,
+    GAME_RESULT
 } GamePhase;
 
 typedef struct {
     GamePhase fase;
-    int personaje_elegido;   // 0=Cantuna, 1=TinTin, 2=Tunda
+    int personaje_elegido;
     int rival_elegido;
     CombatState combate;
     bool isMainOnBottom;
 } GameState;
 
-// Inicializa el juego entero
 void game_init(GameState* gs);
-
-// Actualiza el juego (llamar cada frame)
 void game_update(GameState* gs, int keys_down, touchPosition* touch);
-
-// Dibuja la interfaz de texto
-void game_draw(GameState* gs);
+void game_draw_top(GameState* gs);
+void game_draw_bottom(GameState* gs);
 
 #endif

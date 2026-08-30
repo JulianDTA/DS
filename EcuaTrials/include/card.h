@@ -32,12 +32,15 @@ typedef struct {
     int escudo;         // Puntos de escudo que otorga
     int curacion;       // Puntos de HP que cura
     int robar;          // Cantidad de cartas que roba
+    const char* lore1;  // Linea 1 del lore
+    const char* lore2;  // Linea 2 del lore
+    const char* lore3;  // Linea 3 del lore
 } CardData;
 
 // Escudo activo en el campo
 typedef struct {
     bool activo;
-    int durabilidad;    // Cuantos golpes aguanta (cada golpe = -1)
+    int durabilidad;    // Cuantos golpes aguanta
 } Shield;
 
 // Base de datos de todas las cartas del juego

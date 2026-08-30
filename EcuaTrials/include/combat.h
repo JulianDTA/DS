@@ -8,57 +8,49 @@
 // ECUATRIALS - Gestor de Combate por Turnos
 // =====================================================
 
-// Estados del combate
 typedef enum {
-    COMBAT_START,           // Animacion inicial
-    COMBAT_PLAYER_DRAW,     // Jugador roba carta
-    COMBAT_PLAYER_TURN,     // Jugador elige que carta jugar
-    COMBAT_PLAYER_RESOLVE,  // Resolviendo efectos de la carta jugada
-    COMBAT_ENEMY_TURN,      // IA del rival juega sus cartas
-    COMBAT_ENEMY_RESOLVE,   // Resolviendo efectos del rival
-    COMBAT_CHECK_WIN,       // Verificar si alguien murio
-    COMBAT_WIN,             // Jugador gano
-    COMBAT_LOSE             // Jugador perdio
+    COMBAT_START,
+    COMBAT_PLAYER_DRAW,
+    COMBAT_PLAYER_TURN,
+    COMBAT_PLAYER_RESOLVE,
+    COMBAT_ENEMY_TURN,
+    COMBAT_ENEMY_RESOLVE,
+    COMBAT_CHECK_WIN,
+    COMBAT_WIN,
+    COMBAT_LOSE
 } CombatPhase;
 
-// Datos de un combatiente (Jugador o Rival)
 typedef struct {
     const char* nombre;
     int hp;
     int max_hp;
     DeckState deck;
-    bool puede_jugar_otra;  // Flag de "Jugar Otra Vez" (Rayo en Dungeon Mayhem)
+    bool puede_jugar_otra;
 } Fighter;
 
-// Estado global del combate
 typedef struct {
     Fighter jugador;
     Fighter rival;
     CombatPhase fase;
-    int turno;              // Contador de turnos
-    int cursor;             // Indice de la carta seleccionada en la mano
+    int turno;
+    int cursor;
     bool carta_jugada_este_turno;
+    bool ya_robo_turno;     // Solo puedes robar 1 vez por turno con X
     
-    // Log de texto para la pantalla
     char log[6][32];
     int log_count;
 } CombatState;
 
-// Inicializa un combate nuevo entre dos personajes
-void combat_init(CombatState* cs, 
+void combat_init(CombatState* cs,
                  const char* nombre_jugador, const CardData* deck_jugador, int deck_size_j,
                  const char* nombre_rival, const CardData* deck_rival, int deck_size_r);
 
-// Avanza la maquina de estados del combate (llamar cada frame)
 void combat_update(CombatState* cs, int keys_down);
 
-// Aplica los efectos de una carta jugada por un combatiente contra otro
 void combat_resolve_card(CombatState* cs, Fighter* atacante, Fighter* defensor, const CardData* carta);
 
-// IA simple del rival: elige y juega cartas
 void combat_ai_turn(CombatState* cs);
 
-// Escribe un mensaje en el log de combate
 void combat_log(CombatState* cs, const char* msg);
 
 #endif
