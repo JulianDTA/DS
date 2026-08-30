@@ -4,11 +4,11 @@
 //======================================================================
 //
 //	latunda_sprite, 64x64@16, 
-//	Alphabit on.
+//	Transparent color : FF,00,FF
 //	+ bitmap not compressed
 //	Total size: 8192 = 8192
 //
-//	Time-stamp: 2026-08-30, 19:30:56
+//	Time-stamp: 2026-08-30, 20:57:48
 //	Exported by Cearn's GBA Image Transmogrifier, v1.23.0
 //	( http://www.coranac.com/projects/#grit )
 //

@@ -64,7 +64,9 @@ build/EcuaTrials/source/main.c.o: source/main.c \
  /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/fifo.h \
  /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/tlf.h \
  include/card.h include/combat.h include/card.h \
- build/EcuaTrials/gfx/touch_bg.h build/EcuaTrials/gfx/board_bg.h
+ build/EcuaTrials/gfx/touch_bg.h build/EcuaTrials/gfx/board_bg.h \
+ build/EcuaTrials/gfx/cantuna_sprite.h \
+ build/EcuaTrials/gfx/tintin_sprite.h
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds.h:
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/bios.h:
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/ndstypes.h:
@@ -134,3 +136,5 @@ include/combat.h:
 include/card.h:
 build/EcuaTrials/gfx/touch_bg.h:
 build/EcuaTrials/gfx/board_bg.h:
+build/EcuaTrials/gfx/cantuna_sprite.h:
+build/EcuaTrials/gfx/tintin_sprite.h:
