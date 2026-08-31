@@ -45,4 +45,9 @@ bool deck_add_shield(DeckState* ds, int durabilidad);
 // Aplica dano a los escudos del jugador. Retorna el dano sobrante (no absorbido)
 int deck_damage_shields(DeckState* ds, int dano);
 
+void deck_add_to_hand(DeckState* ds, const CardData* carta);
+const CardData* deck_steal_random_from_hand(DeckState* ds);
+const CardData* deck_steal_top_from_deck(DeckState* ds);
+const CardData* deck_steal_random_from_discard(DeckState* ds);
+
 #endif

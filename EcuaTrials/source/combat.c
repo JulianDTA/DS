@@ -85,6 +85,34 @@ void combat_resolve_card(CombatState* cs, Fighter* atacante, Fighter* defensor, 
         combat_log(cs, buf);
     }
 
+    if (carta->efectos & FX_STEAL_HAND) {
+        const CardData* robada = deck_steal_random_from_hand(&defensor->deck);
+        if (robada) {
+            deck_add_to_hand(&atacante->deck, robada);
+            combat_log(cs, "Roba 1 carta de la mano!");
+        } else {
+            combat_log(cs, "Mano rival vacia!");
+        }
+    }
+    
+    if (carta->efectos & FX_STEAL_DECK) {
+        const CardData* robada = deck_steal_top_from_deck(&defensor->deck);
+        if (robada) {
+            deck_add_to_hand(&atacante->deck, robada);
+            combat_log(cs, "Roba 1 carta del mazo rival!");
+        }
+    }
+    
+    if (carta->efectos & FX_STEAL_DISCARD) {
+        const CardData* robada = deck_steal_random_from_discard(&defensor->deck);
+        if (robada) {
+            deck_add_to_hand(&atacante->deck, robada);
+            combat_log(cs, "Roba 1 carta del descarte!");
+        } else {
+            combat_log(cs, "Descarte rival vacio!");
+        }
+    }
+
     // --- ATAQUE ---
     if (carta->efectos & FX_ATTACK) {
         int dano = carta->ataque;

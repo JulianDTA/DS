@@ -485,8 +485,8 @@ void game_draw_bottom(GameState* gs) {
 
             int start_idx = gs->personaje_elegido - 1;
             if (start_idx < 0) start_idx = 0;
-            if (start_idx > 12 - 3) start_idx = 12 - 3;
-            for (int i = start_idx; i < start_idx + 3; i++) {
+            if (start_idx > 12 - 6) start_idx = 12 - 6;
+            for (int i = start_idx; i < start_idx + 6; i++) {
                 if (i == gs->personaje_elegido) {
                     printf("   >> %s <<\n", NOMBRES_PERSONAJES[i]);
                 } else {
@@ -502,7 +502,7 @@ void game_draw_bottom(GameState* gs) {
             CombatState* cs = &gs->combate;
 
             // --- BARRA DE ESTADO ---
-            printf(" TU(%s) HP:%d", cs->jugador.nombre, cs->jugador.hp);
+            printf(" \nTU(%s) HP:%d", cs->jugador.nombre, cs->jugador.hp);
             int esc_total = 0;
             for (int i = 0; i < MAX_SHIELDS; i++) {
                 if (cs->jugador.deck.escudos[i].activo)
@@ -510,7 +510,7 @@ void game_draw_bottom(GameState* gs) {
             }
             printf(" Esc:%d\n", esc_total);
 
-            printf(" VS(%s) HP:%d", cs->rival.nombre, cs->rival.hp);
+            printf(" \nVS(%s) HP:%d", cs->rival.nombre, cs->rival.hp);
             int esc_rival = 0;
             for (int i = 0; i < MAX_SHIELDS; i++) {
                 if (cs->rival.deck.escudos[i].activo)
@@ -518,15 +518,15 @@ void game_draw_bottom(GameState* gs) {
             }
             printf(" Esc:%d\n", esc_rival);
 
-            printf(" T:%d Mazo:%d Desc:%d\n",
+            printf(" \nTurno:%d Mazo:%d Descarte:%d\n",
                 cs->turno, cs->jugador.deck.mazo_top, cs->jugador.deck.descarte_size);
             printf("------------------------------\n");
 
             // --- LOG ---
-            for (int i = 0; i < cs->log_count && i < 6; i++) {
+            for (int i = 0; i < cs->log_count && i < 9; i++) {
                 printf(" %s\n", cs->log[i]);
             }
-            for (int i = cs->log_count; i < 6; i++) {
+            for (int i = cs->log_count; i < 9; i++) {
                 printf("\n");
             }
 

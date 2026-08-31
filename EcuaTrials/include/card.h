@@ -9,11 +9,14 @@
 // =====================================================
 
 // Tipos de efecto que una carta puede tener (una carta puede tener varios)
-#define FX_ATTACK     (1 << 0)  // Espadas cruzadas: Hace dano
-#define FX_SHIELD     (1 << 1)  // Escudo: Protege del dano
-#define FX_HEAL       (1 << 2)  // Corazon: Cura vida
-#define FX_DRAW       (1 << 3)  // Carta: Roba cartas adicionales
-#define FX_PLAY_AGAIN (1 << 4)  // Rayo: Juega otra carta gratis
+#define FX_ATTACK       (1 << 0)
+#define FX_SHIELD       (1 << 1)
+#define FX_HEAL         (1 << 2)
+#define FX_DRAW         (1 << 3)
+#define FX_PLAY_AGAIN   (1 << 4)
+#define FX_STEAL_HAND   (1 << 5)
+#define FX_STEAL_DECK   (1 << 6)
+#define FX_STEAL_DISCARD (1 << 7)  // Rayo: Juega otra carta gratis
 
 // Maximo de cartas en un mazo
 #define MAX_DECK_SIZE 28

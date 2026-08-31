@@ -117,3 +117,51 @@ int deck_damage_shields(DeckState* ds, int dano) {
     }
     return dano; // Retorna el dano que paso al HP
 }
+
+void deck_add_to_hand(DeckState* ds, const CardData* carta) {
+    if (!carta) return;
+    if (ds->mano_size >= MAX_HAND_SIZE) {
+        ds->descarte[ds->descarte_size] = carta;
+        ds->descarte_size++;
+    } else {
+        ds->mano[ds->mano_size] = carta;
+        ds->mano_size++;
+    }
+}
+
+const CardData* deck_steal_random_from_hand(DeckState* ds) {
+    if (ds->mano_size <= 0) return NULL;
+    int idx = rng_next() % ds->mano_size;
+    const CardData* carta = ds->mano[idx];
+    for (int i = idx; i < ds->mano_size - 1; i++) {
+        ds->mano[i] = ds->mano[i + 1];
+    }
+    ds->mano_size--;
+    return carta;
+}
+
+const CardData* deck_steal_top_from_deck(DeckState* ds) {
+    if (ds->mazo_top <= 0) {
+        if (ds->descarte_size <= 0) return NULL;
+        for (int j = 0; j < ds->descarte_size; j++) {
+            ds->mazo[j] = ds->descarte[j];
+        }
+        ds->mazo_top = ds->descarte_size;
+        ds->descarte_size = 0;
+        deck_shuffle(ds);
+    }
+    if (ds->mazo_top <= 0) return NULL;
+    ds->mazo_top--;
+    return ds->mazo[ds->mazo_top];
+}
+
+const CardData* deck_steal_random_from_discard(DeckState* ds) {
+    if (ds->descarte_size <= 0) return NULL;
+    int idx = rng_next() % ds->descarte_size;
+    const CardData* carta = ds->descarte[idx];
+    for (int i = idx; i < ds->descarte_size - 1; i++) {
+        ds->descarte[i] = ds->descarte[i + 1];
+    }
+    ds->descarte_size--;
+    return carta;
+}
