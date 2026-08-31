@@ -254,7 +254,7 @@ void combat_update(CombatState* cs, int keys_down) {
             }
             // IA: Juega 1 sola carta y pasa a un estado de espera con timer
             combat_ai_turn(cs);
-            cs->timer = 90; // 1.5 segundos a 60 FPS
+            cs->timer = 150; // 2.5 segundos a 60 FPS
             cs->fase = COMBAT_ENEMY_WAIT;
             break;
 
