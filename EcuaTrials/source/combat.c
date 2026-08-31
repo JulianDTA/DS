@@ -144,16 +144,16 @@ void combat_ai_turn(CombatState* cs) {
 
         const CardData* carta = deck_play_from_hand(&ai->deck, mejor_idx);
         if (carta) {
-            snprintf(buf, 31, "IA: Juega %s", carta->nombre);
+            snprintf(buf, 31, "Juega: %s", carta->nombre);
             combat_log(cs, buf);
             combat_resolve_card(cs, ai, &cs->jugador, carta);
 
             if (ai->puede_jugar_otra) {
-                combat_log(cs, "IA: Encadena otra carta!");
+                combat_log(cs, "Encadena otra carta!");
             }
         }
     } else {
-        combat_log(cs, "IA no tiene cartas.");
+        combat_log(cs, "Sin cartas que jugar.");
     }
 }
 
@@ -252,20 +252,24 @@ void combat_update(CombatState* cs, int keys_down) {
                 if (cs->rival.deck.mano_size == 0) deck_draw(&cs->rival.deck, 2);
                 cs->ya_robo_turno = true;
             }
-            // IA: Juega 1 sola carta y pasa a un estado de espera
+            // IA: Juega 1 sola carta y pasa a un estado de espera con timer
             combat_ai_turn(cs);
+            cs->timer = 90; // 1.5 segundos a 60 FPS
             cs->fase = COMBAT_ENEMY_WAIT;
             break;
 
         case COMBAT_ENEMY_WAIT:
-            if (keys_down & KEY_A) {
+            cs->timer--;
+            if (cs->timer <= 0) {
                 // Si la IA puede jugar otra carta por un combo, vuelve a su turno
                 if (cs->rival.puede_jugar_otra && cs->rival.deck.mano_size > 0) {
                     cs->rival.puede_jugar_otra = false;
                     cs->fase = COMBAT_ENEMY_TURN;
                 } else {
                     // Si no, verificar K.O. o devolver turno al jugador
-                    combat_log(cs, "Fin del turno Rival.");
+                    char buf[32];
+                    snprintf(buf, 31, "Fin del turno de %s", cs->rival.nombre);
+                    combat_log(cs, buf);
                     if (cs->jugador.hp <= 0) {
                         cs->fase = COMBAT_CHECK_WIN;
                     } else {

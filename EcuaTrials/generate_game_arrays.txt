@@ -97,7 +97,7 @@ case 6:
     printf("   Rol: %s\n", "EQUILIBRADO");
     printf("   %s\n", "Gallo de oro");
     printf("   %s\n", "Canta en la iglesia");
-    printf("   %s\n", "Danio y velocidad");
+    printf("   %s\n", "Dano y velocidad");
     break;
 case 7:
     printf("   ========================\n");

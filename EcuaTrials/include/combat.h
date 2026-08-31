@@ -36,7 +36,8 @@ typedef struct {
     int turno;
     int cursor;
     bool carta_jugada_este_turno;
-    bool ya_robo_turno;     // Solo puedes robar 1 vez por turno con X
+    bool ya_robo_turno;
+    int timer;
     
     char log[6][32];
     int log_count;
