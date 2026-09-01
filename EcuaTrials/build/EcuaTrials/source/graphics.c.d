@@ -1,5 +1,5 @@
-build/EcuaTrials/source/game.c.o: source/game.c include/game.h \
- include/combat.h include/deck.h include/card.h \
+build/EcuaTrials/source/graphics.c.o: source/graphics.c \
+ include/graphics.h \
  /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds.h \
  /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/bios.h \
  /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/ndstypes.h \
@@ -63,12 +63,8 @@ build/EcuaTrials/source/game.c.o: source/game.c include/game.h \
  /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/peripherals/slot2tilt.h \
  /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/dsp.h \
  /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/fifo.h \
- /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/tlf.h \
- include/graphics.h
-include/game.h:
-include/combat.h:
-include/deck.h:
-include/card.h:
+ /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/tlf.h
+include/graphics.h:
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds.h:
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/bios.h:
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/ndstypes.h:
@@ -133,4 +129,3 @@ include/card.h:
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/dsp.h:
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/fifo.h:
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/tlf.h:
-include/graphics.h:

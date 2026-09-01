@@ -44,16 +44,14 @@ void deck_shuffle(DeckState* ds) {
     }
 }
 
-void deck_draw(DeckState* ds, int n) {
+bool deck_draw(DeckState* ds, int n) {
+    bool shuffled = false;
     for (int i = 0; i < n; i++) {
-        // Si la mano esta llena, no robar mas
-        if (ds->mano_size >= MAX_HAND_SIZE) return;
+        if (ds->mano_size >= MAX_HAND_SIZE) return shuffled;
         
-        // Si el mazo esta vacio, reciclar la pila de descarte
         if (ds->mazo_top <= 0) {
-            if (ds->descarte_size <= 0) return; // No hay cartas en ninguna parte
+            if (ds->descarte_size <= 0) return shuffled;
             
-            // Mover descarte al mazo
             for (int j = 0; j < ds->descarte_size; j++) {
                 ds->mazo[j] = ds->descarte[j];
             }
@@ -61,6 +59,7 @@ void deck_draw(DeckState* ds, int n) {
             ds->descarte_size = 0;
             
             deck_shuffle(ds);
+            shuffled = true;
         }
         
         // Robar la carta del tope
@@ -68,6 +67,7 @@ void deck_draw(DeckState* ds, int n) {
         ds->mano[ds->mano_size] = ds->mazo[ds->mazo_top];
         ds->mano_size++;
     }
+    return shuffled;
 }
 
 const CardData* deck_play_from_hand(DeckState* ds, int index) {
@@ -140,9 +140,11 @@ const CardData* deck_steal_random_from_hand(DeckState* ds) {
     return carta;
 }
 
-const CardData* deck_steal_top_from_deck(DeckState* ds) {
+const CardData* deck_steal_top_from_deck(DeckState* ds, bool* did_shuffle) {
+    if (did_shuffle) *did_shuffle = false;
     if (ds->mazo_top <= 0) {
         if (ds->descarte_size <= 0) return NULL;
+        if (did_shuffle) *did_shuffle = true;
         for (int j = 0; j < ds->descarte_size; j++) {
             ds->mazo[j] = ds->descarte[j];
         }

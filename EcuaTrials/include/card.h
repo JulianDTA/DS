@@ -16,10 +16,18 @@
 #define FX_PLAY_AGAIN   (1 << 4)
 #define FX_STEAL_HAND   (1 << 5)
 #define FX_STEAL_DECK   (1 << 6)
-#define FX_STEAL_DISCARD (1 << 7)  // Rayo: Juega otra carta gratis
+#define FX_STEAL_DISCARD (1 << 7)
+#define FX_AURA         (1 << 8)  // Carta permanece en el campo (Regla/Estado)
+
+// Tipos de Aura/Regla (usaremos el campo `ataque`, `curacion`, etc para definir comportamiento, o campos nuevos)
+// Como la estructura CardData ya está llena, podemos reusar los campos si tiene FX_AURA:
+// Si ataque > 0: Daño pasivo al enemigo cada turno
+// Si curacion > 0: Cura pasiva al jugador cada turno
+// Si escudo > 0: Incrementa todo el daño que hace el jugador (Buff de daño)
+// Si robar > 0: Refleja el daño o cancela algo (ej. trampa)
 
 // Maximo de cartas en un mazo
-#define MAX_DECK_SIZE 28
+#define MAX_DECK_SIZE 40
 // Maximo de cartas en la mano
 #define MAX_HAND_SIZE 10
 // Maximo de escudos activos en el campo

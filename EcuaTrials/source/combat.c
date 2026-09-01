@@ -35,20 +35,26 @@ void combat_init(CombatState* cs,
     cs->jugador.hp = 10;
     cs->jugador.max_hp = 10;
     cs->jugador.puede_jugar_otra = false;
+    cs->jugador.num_reglas = 0;
     deck_init(&cs->jugador.deck, deck_jugador, deck_size_j);
 
     cs->rival.nombre = nombre_rival;
     cs->rival.hp = 10;
     cs->rival.max_hp = 10;
     cs->rival.puede_jugar_otra = false;
+    cs->rival.num_reglas = 0;
     deck_init(&cs->rival.deck, deck_rival, deck_size_r);
 
     cs->fase = COMBAT_START;
     cs->turno = 0;
     cs->cursor = 0;
     cs->carta_jugada_este_turno = false;
-    cs->log_count = 0;
     cs->ya_robo_turno = false;
+    cs->log_count = 0;
+    cs->timer = 0;
+    cs->dragged_card_idx = -1;
+    cs->drag_x = 0;
+    cs->drag_y = 0;
 
     // Mano inicial: 3 cartas cada uno
     deck_draw(&cs->jugador.deck, 3);
@@ -96,7 +102,9 @@ void combat_resolve_card(CombatState* cs, Fighter* atacante, Fighter* defensor, 
     }
     
     if (carta->efectos & FX_STEAL_DECK) {
-        const CardData* robada = deck_steal_top_from_deck(&defensor->deck);
+        bool sf = false;
+        const CardData* robada = deck_steal_top_from_deck(&defensor->deck, &sf);
+        if (sf) combat_log(cs, "Mazo rival reiniciado!");
         if (robada) {
             deck_add_to_hand(&atacante->deck, robada);
             combat_log(cs, "Roba 1 carta del mazo rival!");
@@ -135,6 +143,61 @@ void combat_resolve_card(CombatState* cs, Fighter* atacante, Fighter* defensor, 
     // --- JUGAR OTRA VEZ ---
     if (carta->efectos & FX_PLAY_AGAIN) {
         atacante->puede_jugar_otra = true;
+    }
+    
+    // --- AURA (ESTADO / REGLA) ---
+    if (carta->efectos & FX_AURA) {
+        // Remover del descarte porque se queda activa
+        if (atacante->deck.descarte_size > 0 && atacante->deck.descarte[atacante->deck.descarte_size - 1] == carta) {
+            atacante->deck.descarte_size--;
+        }
+        
+        // Anadir a las reglas activas (max 3)
+        if (atacante->num_reglas >= 3) {
+            // Enviar la mas antigua al descarte
+            atacante->deck.descarte[atacante->deck.descarte_size++] = atacante->reglas_activas[0];
+            
+            // Desplazar (Shift)
+            atacante->reglas_activas[0] = atacante->reglas_activas[1];
+            atacante->reglas_activas[1] = atacante->reglas_activas[2];
+            atacante->num_reglas = 2;
+        }
+        
+        atacante->reglas_activas[atacante->num_reglas++] = carta;
+        combat_log(cs, "Regla en campo!");
+    }
+}
+
+
+void combat_apply_auras(CombatState* cs, Fighter* owner, Fighter* opponent) {
+    for (int i = 0; i < owner->num_reglas; i++) {
+        const CardData* aura = owner->reglas_activas[i];
+        
+        // Efectos pasivos
+        if (aura->ataque > 0) {
+            char buf[32];
+            int dmg = deck_damage_shields(&opponent->deck, aura->ataque);
+            if (dmg > 0) {
+                opponent->hp -= dmg;
+                snprintf(buf, 31, "Aura: -%d HP a %s", dmg, opponent->nombre);
+            } else {
+                snprintf(buf, 31, "Aura choca con escudo");
+            }
+            combat_log(cs, buf);
+        }
+        
+        if (aura->curacion > 0) {
+            char buf[32];
+            owner->hp += aura->curacion;
+            if (owner->hp > owner->max_hp) owner->hp = owner->max_hp;
+            snprintf(buf, 31, "Aura cura: +%d HP", aura->curacion);
+            combat_log(cs, buf);
+        }
+        
+        if (aura->robar > 0) {
+            if (deck_draw(&owner->deck, aura->robar)) combat_log(cs, "Mazo reiniciado!");
+            combat_log(cs, "Aura: Roba extra");
+        }
     }
 }
 
@@ -175,6 +238,11 @@ void combat_ai_turn(CombatState* cs) {
             snprintf(buf, 31, "Juega: %s", carta->nombre);
             combat_log(cs, buf);
             combat_resolve_card(cs, ai, &cs->jugador, carta);
+            
+            if (ai->deck.mano_size == 0) {
+                if (deck_draw(&ai->deck, 2)) combat_log(cs, "Rival mazo reiniciado!");
+                combat_log(cs, "Rival mano vacia! +2");
+            }
 
             if (ai->puede_jugar_otra) {
                 combat_log(cs, "Encadena otra carta!");
@@ -185,7 +253,7 @@ void combat_ai_turn(CombatState* cs) {
     }
 }
 
-void combat_update(CombatState* cs, int keys_down) {
+void combat_update(CombatState* cs, int keys_down, touchPosition* touch) {
     switch (cs->fase) {
         case COMBAT_START:
             cs->fase = COMBAT_PLAYER_DRAW;
@@ -204,80 +272,99 @@ void combat_update(CombatState* cs, int keys_down) {
             }
 
             cs->cursor = 0;
-            cs->fase = COMBAT_PLAYER_TURN;
+            combat_apply_auras(cs, &cs->jugador, &cs->rival);
+            if (cs->rival.hp <= 0) cs->fase = COMBAT_CHECK_WIN;
+            else cs->fase = COMBAT_PLAYER_TURN;
             break;
 
-        case COMBAT_PLAYER_TURN:
-            // --- X: ROBAR CARTA ---
-            // Solo puedes robar una vez por turno, antes de jugar
-            if ((keys_down & KEY_X) && !cs->ya_robo_turno && !cs->carta_jugada_este_turno) {
-                deck_draw(&cs->jugador.deck, 1);
-                cs->ya_robo_turno = true;
-                combat_log(cs, "Robas 1 carta.");
-                
-                // Si la mano estaba vacia, robar 2
-                if (cs->jugador.deck.mano_size == 0) {
-                    deck_draw(&cs->jugador.deck, 2);
-                    combat_log(cs, "Mano vacia! +2 cartas.");
+        case COMBAT_PLAYER_TURN: {
+            int tch_down = keys_down; // keys_down viene de keysDown()
+            int tch_held = keysHeld();
+            int tch_up   = keysUp();
+            
+            if (tch_down & KEY_TOUCH) {
+                // Chequear Mazo (zona inferior derecha)
+                if (touch->px > 200 && touch->py > 110) {
+                    if (!cs->ya_robo_turno && !cs->carta_jugada_este_turno) {
+                        if (cs->jugador.deck.mano_size == 0) {
+                            if (deck_draw(&cs->jugador.deck, 2)) combat_log(cs, "Mazo reiniciado!");
+                            combat_log(cs, "Mano vacia! Recarga +2");
+                        } else {
+                            if (deck_draw(&cs->jugador.deck, 1)) combat_log(cs, "Mazo reiniciado!");
+                            combat_log(cs, "Robas 1 carta.");
+                        }
+                        cs->ya_robo_turno = true;
+                    }
+                } else {
+                    // Chequear cartas en mano
+                    for (int i = 0; i < cs->jugador.deck.mano_size; i++) {
+                        int cx = i * 36 + 10;
+                        int cy = 120;
+                        if (touch->px >= cx && touch->px <= cx + 32 &&
+                            touch->py >= cy && touch->py <= cy + 64) {
+                            cs->dragged_card_idx = i;
+                            cs->drag_x = touch->px - 16;
+                            cs->drag_y = touch->py - 32;
+                            break;
+                        }
+                    }
                 }
-            }
+            } else if (tch_held & KEY_TOUCH) {
+                if (cs->dragged_card_idx >= 0) {
+                    cs->drag_x = touch->px - 16;
+                    cs->drag_y = touch->py - 32;
+                }
+            } else if (tch_up & KEY_TOUCH) {
+                if (cs->dragged_card_idx >= 0) {
+                    if (touch->py < 60) { // Drop zone (borde superior)
+                        if (cs->ya_robo_turno) {
+                            cs->jugador.puede_jugar_otra = false;
+                            const CardData* carta = deck_play_from_hand(&cs->jugador.deck, cs->dragged_card_idx);
+                            
+                            if (carta) {
+                                char buf[32];
+                                snprintf(buf, 31, "Juegas %s!", carta->nombre);
+                                combat_log(cs, buf);
 
-            // --- NAVEGACION ---
-            if (keys_down & KEY_LEFT) {
-                cs->cursor--;
-                if (cs->cursor < 0) cs->cursor = cs->jugador.deck.mano_size - 1;
-            }
-            if (keys_down & KEY_RIGHT) {
-                cs->cursor++;
-                if (cs->cursor >= cs->jugador.deck.mano_size) cs->cursor = 0;
-            }
+                                combat_resolve_card(cs, &cs->jugador, &cs->rival, carta);
+                                cs->carta_jugada_este_turno = true;
 
-            // --- A: JUGAR CARTA ---
-            // REGLA: Debes robar primero (X) antes de poder jugar
-            if ((keys_down & KEY_A) && cs->jugador.deck.mano_size > 0 && cs->ya_robo_turno) {
-                cs->jugador.puede_jugar_otra = false;
+                                if (cs->jugador.deck.mano_size == 0) {
+                                    if (deck_draw(&cs->jugador.deck, 2)) combat_log(cs, "Mazo reiniciado!");
+                                    combat_log(cs, "Mano vacia! Recarga +2");
+                                }
 
-                const CardData* carta = deck_play_from_hand(&cs->jugador.deck, cs->cursor);
-                if (carta) {
-                    char buf[32];
-                    snprintf(buf, 31, "Juegas %s!", carta->nombre);
-                    combat_log(cs, buf);
-
-                    combat_resolve_card(cs, &cs->jugador, &cs->rival, carta);
-                    cs->carta_jugada_este_turno = true;
-
-                    // Ajustar cursor
-                    if (cs->cursor >= cs->jugador.deck.mano_size && cs->jugador.deck.mano_size > 0) {
-                        cs->cursor = cs->jugador.deck.mano_size - 1;
+                                if (cs->rival.hp <= 0) {
+                                    cs->fase = COMBAT_CHECK_WIN;
+                                } else if (cs->jugador.puede_jugar_otra && cs->jugador.deck.mano_size > 0) {
+                                    cs->jugador.puede_jugar_otra = false;
+                                    combat_log(cs, "Encadena otra carta!");
+                                } else {
+                                    combat_log(cs, "Fin de tu turno.");
+                                    cs->ya_robo_turno = false;
+                                    cs->fase = COMBAT_ENEMY_TURN;
+                                }
+                            }
+                        } else {
+                            combat_log(cs, "Debes robar mazo primero!");
+                        }
                     }
-                    if (cs->cursor < 0) cs->cursor = 0;
-
-                    // Verificar K.O.
-                    if (cs->rival.hp <= 0) {
-                        cs->fase = COMBAT_CHECK_WIN;
-                        break;
-                    }
-
-                    // Si la carta tenia PLAY_AGAIN y hay cartas en la mano, sigue tu turno
-                    if (cs->jugador.puede_jugar_otra && cs->jugador.deck.mano_size > 0) {
-                        cs->jugador.puede_jugar_otra = false;
-                        combat_log(cs, "Encadena otra carta!");
-                        // Sigue en COMBAT_PLAYER_TURN, puede jugar otra
-                        break;
-                    }
-
-                    // Si NO tenia PLAY_AGAIN, el turno termina automaticamente
-                    combat_log(cs, "Fin de tu turno.");
-                    cs->ya_robo_turno = false;
-                    cs->fase = COMBAT_ENEMY_TURN;
+                    cs->dragged_card_idx = -1;
                 }
             }
             break;
+        }
 
         case COMBAT_ENEMY_TURN:
             if (!cs->ya_robo_turno) {
-                deck_draw(&cs->rival.deck, 1);
-                if (cs->rival.deck.mano_size == 0) deck_draw(&cs->rival.deck, 2);
+                combat_apply_auras(cs, &cs->rival, &cs->jugador);
+                if (cs->jugador.hp <= 0) { cs->fase = COMBAT_CHECK_WIN; break; }
+                if (cs->rival.deck.mano_size == 0) {
+                    if (deck_draw(&cs->rival.deck, 2)) combat_log(cs, "Rival mazo reiniciado!");
+                    combat_log(cs, "Rival mano vacia! +2");
+                } else {
+                    if (deck_draw(&cs->rival.deck, 1)) combat_log(cs, "Rival mazo reiniciado!");
+                }
                 cs->ya_robo_turno = true;
             }
             // IA: Juega 1 sola carta y pasa a un estado de espera con timer

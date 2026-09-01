@@ -45,11 +45,15 @@ static int get_deck_size_for_char(int id) {
 }
 
 void game_init(GameState* gs) {
-    memset(gs, 0, sizeof(GameState));
-    gs->fase = GAME_TITLE;
+    // Saltar el menu y la seleccion directamente a combate para debugear graficos
+    gs->fase = GAME_COMBAT;
+    
+    // Iniciar con personaje 0 vs personaje 1
     gs->personaje_elegido = 0;
     gs->rival_elegido = 1;
-    gs->isMainOnBottom = false;
+    combat_init(&gs->combate, 
+        NOMBRES_PERSONAJES[0], get_deck_for_char(0), get_deck_size_for_char(0),
+        NOMBRES_PERSONAJES[1], get_deck_for_char(1), get_deck_size_for_char(1));
 }
 
 void game_update(GameState* gs, int keys_down, touchPosition* touch) {
@@ -96,7 +100,7 @@ void game_update(GameState* gs, int keys_down, touchPosition* touch) {
             break;
 
         case GAME_COMBAT:
-            combat_update(&gs->combate, keys_down);
+            combat_update(&gs->combate, keys_down, touch);
 
             if (gs->combate.fase == COMBAT_WIN || gs->combate.fase == COMBAT_LOSE) {
                 if (keys_down & KEY_START) {
@@ -156,421 +160,48 @@ static void print_match_result(int winner, int loser, bool player_won) {
 }
 
 void game_draw_top(GameState* gs) {
-    consoleClear();
-
-    switch (gs->fase) {
-        case GAME_TITLE:
-            printf("\n\n\n\n\n");
-            printf("    ========================\n");
-            printf("       E C U A T R I A L S\n");
-            printf("    ========================\n\n");
-            printf("    Leyendas Ecuatorianas\n");
-            printf("    Juego de Cartas\n\n");
-            printf("    \n");
-            printf("    \n\n");
-            printf("    v0.2 - 2026\n");
-            break;
-
-        case GAME_SELECT_CHAR:
-            printf("\n\n");
-            switch (gs->personaje_elegido) {
-case 0:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[0]);
-    printf("   ========================\n\n");
-    printf("   Cuenta la leyenda que\n");
-    printf("   Cantuna hizo un pacto con\n");
-    printf("   el diablo para construir\n");
-    printf("   la Iglesia de San Francisco\n");
-    printf("   en una sola noche.\n");
-    printf("   \n");
-    printf("   Pero el astuto constructor\n");
-    printf("   quito un ladrillo antes de\n");
-    printf("   amanecer, y el diablo no\n");
-    printf("   pudo reclamar su alma.\n");
-    printf("   \n");
-    printf("   Rol: TANQUE\n");
-    printf("   Escudos fuertes, golpes\n");
-    printf("   devastadores.\n");
-    break;
-case 1:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[1]);
-    printf("   ========================\n\n");
-    printf("   Un duende travieso de la\n");
-    printf("   costa ecuatoriana.\n");
-    printf("   Usa un sombrero enorme y\n");
-    printf("   aparece en las sombras\n");
-    printf("   para asustar a la gente.\n");
-    printf("   \n");
-    printf("   Le encanta esconder cosas,\n");
-    printf("   hacer nudos en el cabello\n");
-    printf("   y robar de los bolsillos\n");
-    printf("   con sus manos rapidas.\n");
-    printf("   \n");
-    printf("   Rol: AGRESOR\n");
-    printf("   Ataques rapidos, combos\n");
-    printf("   impredecibles.\n");
-    break;
-case 2:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[2]);
-    printf("   ========================\n\n");
-    printf("   Espiritu del manglar.\n");
-    printf("   Tiene una pierna humana\n");
-    printf("   y otra de molinillo.\n");
-    printf("   \n");
-    printf("   Se disfraza de un ser\n");
-    printf("   querido para atraer a\n");
-    printf("   los ninos al bosque\n");
-    printf("   ofreciendo camarones.\n");
-    printf("   Asi los hipnotiza.\n");
-    printf("   \n");
-    printf("   Rol: CONTROL\n");
-    printf("   Curacion poderosa y\n");
-    printf("   drenaje de vida.\n");
-    break;
-case 3:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[3]);
-    printf("   ========================\n\n");
-    printf("   Un sacerdote franciscano\n");
-    printf("   que escapaba del convento\n");
-    printf("   para irse de farra.\n");
-    printf("   \n");
-    printf("   Pisaba la estatua de\n");
-    printf("   Cristo, quien le pregunto:\n");
-    printf("   Hasta cuando Padre\n");
-    printf("   Almeida? El respondio:\n");
-    printf("   Hasta la vuelta, Senor.\n");
-    printf("   \n");
-    printf("   Rol: COMBO\n");
-    printf("   Poca defensa pero\n");
-    printf("   mucho robo de cartas.\n");
-    break;
-case 4:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[4]);
-    printf("   ========================\n\n");
-    printf("   Misteriosa mujer que\n");
-    printf("   camina por Guayaquil a\n");
-    printf("   la medianoche.\n");
-    printf("   Su perfume embriagador\n");
-    printf("   atrae a los hombres.\n");
-    printf("   \n");
-    printf("   Al quitarse el velo,\n");
-    printf("   muestra su craneo y\n");
-    printf("   un olor a muerte que\n");
-    printf("   paraliza a sus victimas.\n");
-    printf("   \n");
-    printf("   Rol: TERROR\n");
-    printf("   Debuffs, escudos y\n");
-    printf("   dano masivo.\n");
-    break;
-case 5:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[5]);
-    printf("   ========================\n\n");
-    printf("   Nina muy golosa.\n");
-    printf("   Su madre le pidio\n");
-    printf("   comprar tripas, pero\n");
-    printf("   se gasto el dinero.\n");
-    printf("   \n");
-    printf("   Para enganarla, robo\n");
-    printf("   las tripas de un muerto.\n");
-    printf("   El espiritu la busco\n");
-    printf("   gritando por sus tripas.\n");
-    printf("   \n");
-    printf("   Rol: AGRESOR\n");
-    printf("   Ataques freneticos y\n");
-    printf("   comportamiento salvaje.\n");
-    break;
-case 6:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[6]);
-    printf("   ========================\n\n");
-    printf("   El gallo de bronce de\n");
-    printf("   la Catedral cobro vida\n");
-    printf("   para darle una leccion\n");
-    printf("   a Don Ramon Ayala,\n");
-    printf("   un hombre jactancioso.\n");
-    printf("   \n");
-    printf("   Despues de que lo\n");
-    printf("   insultara repetidas veces,\n");
-    printf("   el ave dorada bajo a\n");
-    printf("   picotearlo sin piedad.\n");
-    printf("   \n");
-    printf("   Rol: EQUILIBRADO\n");
-    printf("   Ataques desde el aire,\n");
-    printf("   buena curacion.\n");
-    break;
-case 7:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[7]);
-    printf("   ========================\n\n");
-    printf("   El espectro de un\n");
-    printf("   sacerdote condenado\n");
-    printf("   a vagar sin su cabeza\n");
-    printf("   por sus terribles pecados.\n");
-    printf("   \n");
-    printf("   Su silueta oscura\n");
-    printf("   atormenta las calles,\n");
-    printf("   emanando un frio\n");
-    printf("   sobrenatural a su paso.\n");
-    printf("   \n");
-    printf("   Rol: MAGIA\n");
-    printf("   Dano magico norme,\n");
-    printf("   imposible de bloquear.\n");
-    break;
-case 8:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[8]);
-    printf("   ========================\n\n");
-    printf("   Una criatura salvaje\n");
-    printf("   de los paramos andinos.\n");
-    printf("   Mitad nino, mitad bestia,\n");
-    printf("   protege a los animales.\n");
-    printf("   \n");
-    printf("   Tiene una agresividad\n");
-    printf("   desmedida y ataca con\n");
-    printf("   furia incontrolable a\n");
-    printf("   quien falte el respeto.\n");
-    printf("   \n");
-    printf("   Rol: SALVAJE\n");
-    printf("   Ataques brutales puros\n");
-    printf("   con nula defensa.\n");
-    break;
-case 9:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[9]);
-    printf("   ========================\n\n");
-    printf("   El alma en pena de\n");
-    printf("   una mujer que perdio a\n");
-    printf("   su hijo en un rio.\n");
-    printf("   \n");
-    printf("   Vaga por las orillas\n");
-    printf("   llorando sin consuelo.\n");
-    printf("   Su inmenso dolor\n");
-    printf("   marchita las plantas y\n");
-    printf("   hiela la sangre.\n");
-    printf("   \n");
-    printf("   Rol: TRISTEZA\n");
-    printf("   Mucha curacion base y\n");
-    printf("   escudos impenetrables.\n");
-    break;
-case 10:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[10]);
-    printf("   ========================\n\n");
-    printf("   El espiritu de un bebe\n");
-    printf("   no bautizado que fue\n");
-    printf("   abandonado. Su llanto\n");
-    printf("   despierta compasion.\n");
-    printf("   \n");
-    printf("   Pero cuando un viajero\n");
-    printf("   lo toma en sus brazos,\n");
-    printf("   el bebe muestra dientes\n");
-    printf("   de demonio y ataca.\n");
-    printf("   \n");
-    printf("   Rol: SORPRESA\n");
-    printf("   Robo de cartas\n");
-    printf("   y ataques enganosos.\n");
-    break;
-case 11:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[11]);
-    printf("   ========================\n\n");
-    printf("   El fantasma de una\n");
-    printf("   mujer que ronda un\n");
-    printf("   antiguo tamarindo.\n");
-    printf("   \n");
-    printf("   Llora buscando consuelo,\n");
-    printf("   pero si alguien se le\n");
-    printf("   acerca, revela un rostro\n");
-    printf("   que provoca la locura.\n");
-    printf("   \n");
-    printf("   Rol: TRAMPA\n");
-    printf("   Drenaje de vida,\n");
-    printf("   ilusiones y control.\n");
-    break;
-            }
-            break;
-
-        case GAME_COMBAT: {
-            CombatState* cs = &gs->combate;
-
-            if (cs->fase == COMBAT_PLAYER_TURN &&
-                cs->jugador.deck.mano_size > 0 &&
-                cs->cursor >= 0 && cs->cursor < cs->jugador.deck.mano_size)
-            {
-                const CardData* c = cs->jugador.deck.mano[cs->cursor];
-
-                printf("\n");
-                printf("   ========================\n");
-                printf("    %s\n", c->nombre);
-                printf("   ========================\n\n");
-
-                // Iconos de efecto
-                printf("   Efectos:\n");
-                if (c->efectos & FX_ATTACK)
-                    printf("   * Ataque: %d dano\n", c->ataque);
-                if (c->efectos & FX_SHIELD)
-                    printf("   * Escudo: %d puntos\n", c->escudo);
-                if (c->efectos & FX_HEAL)
-                    printf("   * Curacion: %d HP\n", c->curacion);
-                if (c->efectos & FX_DRAW)
-                    printf("   * Robar: %d carta(s)\n", c->robar);
-                if (c->efectos & FX_PLAY_AGAIN)
-                    printf("   * Encadenar: Juega otra!\n");
-
-                printf("\n   ---- Lore ----\n\n");
-                printf("   %s\n", c->lore1);
-                printf("   %s\n", c->lore2);
-                printf("   %s\n", c->lore3);
-
-                printf("\n   ------- Controles -------\n");
-                if (!cs->ya_robo_turno && !cs->carta_jugada_este_turno) {
-                    printf("   X: Robar 1 carta (OBLIGATORIO)\n");
-                } else {
-                    printf("   A: Jugar esta carta\n");
-                }
-                printf("   </>: Cambiar seleccion\n");
-            } else if (cs->fase == COMBAT_WIN) {
-                printf("\n\n\n\n\n");
-                printf("   ========================\n");
-                printf("       V I C T O R I A !\n");
-                printf("   ========================\n\n");
-                printf("   Tu leyenda ha triunfado.\n\n");
-                printf("   START: Continuar\n");
-            } else if (cs->fase == COMBAT_LOSE) {
-                printf("\n\n\n\n\n");
-                printf("   ========================\n");
-                printf("       D E R R O T A\n");
-                printf("   ========================\n\n");
-                printf("   Tu leyenda ha caido.\n\n");
-                printf("   START: Continuar\n");
-            } else {
-                printf("\n\n\n\n");
-                printf("   Esperando...\n");
-            }
-            break;
-        }
-
-        case GAME_RESULT:
-            if (gs->combate.fase == COMBAT_WIN) {
-                print_match_result(gs->personaje_elegido, gs->rival_elegido, true);
-            } else {
-                print_match_result(gs->rival_elegido, gs->personaje_elegido, false);
-            }
-            break;
-    }
+    // TODO: Renderizar fondos y UI superior
 }
 
-// =====================================================
-// PANTALLA INFERIOR: HUD de combate y mano de cartas
-// =====================================================
+#include "graphics.h"
+
 void game_draw_bottom(GameState* gs) {
-    consoleClear();
+    // Limpiar OAM temporalmente
+    oamClear(&oamSub, 0, 128);
 
-    switch (gs->fase) {
-        case GAME_TITLE:
-            printf("\n\n\n\n\n\n\n\n");
-            printf("      Presiona START\n");
-            printf("      para comenzar\n\n");
-            printf("    SELECT: Cambiar pantalla\n");
-            break;
-
-        case GAME_SELECT_CHAR:
-            printf("\n\n   ELIGE TU LEYENDA\n\n");
-
-            int start_idx = gs->personaje_elegido - 1;
-            if (start_idx < 0) start_idx = 0;
-            if (start_idx > 12 - 6) start_idx = 12 - 6;
-            for (int i = start_idx; i < start_idx + 6; i++) {
-                if (i == gs->personaje_elegido) {
-                    printf("   >> %s <<\n", NOMBRES_PERSONAJES[i]);
-                } else {
-                    printf("      %s\n", NOMBRES_PERSONAJES[i]);
-                }
-            }
-
-            printf("\n   A: Elegir  B: Volver\n");
-            printf("   </>: Cambiar leyenda\n");
-            break;
-
-        case GAME_COMBAT: {
-            CombatState* cs = &gs->combate;
-
-            // --- BARRA DE ESTADO ---
-            printf(" \nTU(%s) HP:%d", cs->jugador.nombre, cs->jugador.hp);
-            int esc_total = 0;
-            for (int i = 0; i < MAX_SHIELDS; i++) {
-                if (cs->jugador.deck.escudos[i].activo)
-                    esc_total += cs->jugador.deck.escudos[i].durabilidad;
-            }
-            printf(" Esc:%d\n", esc_total);
-
-            printf(" \nVS(%s) HP:%d", cs->rival.nombre, cs->rival.hp);
-            int esc_rival = 0;
-            for (int i = 0; i < MAX_SHIELDS; i++) {
-                if (cs->rival.deck.escudos[i].activo)
-                    esc_rival += cs->rival.deck.escudos[i].durabilidad;
-            }
-            printf(" Esc:%d\n", esc_rival);
-
-            printf(" \nTurno:%d Mazo:%d Descarte:%d\n",
-                cs->turno, cs->jugador.deck.mazo_top, cs->jugador.deck.descarte_size);
-            printf("------------------------------\n");
-
-            // --- LOG ---
-            for (int i = 0; i < cs->log_count && i < 9; i++) {
-                printf(" %s\n", cs->log[i]);
-            }
-            for (int i = cs->log_count; i < 9; i++) {
-                printf("\n");
-            }
-
-            printf("------------------------------\n");
-
-            // --- MANO ---
-            if (cs->fase == COMBAT_PLAYER_TURN) {
-                printf(" MANO (%d):", cs->jugador.deck.mano_size);
-                if (!cs->ya_robo_turno && !cs->carta_jugada_este_turno)
-                    printf(" [X:Robar]");
-                printf("\n");
-
-                for (int i = 0; i < cs->jugador.deck.mano_size; i++) {
-                    const CardData* c = cs->jugador.deck.mano[i];
-
-                    if (i == cs->cursor) {
-                        printf(">");
-                    } else {
-                        printf(" ");
-                    }
-
-                    printf("%s ", c->nombre);
-
-                    // Iconos compactos
-                    if (c->efectos & FX_ATTACK)     printf("A%d", c->ataque);
-                    if (c->efectos & FX_SHIELD)     printf("E%d", c->escudo);
-                    if (c->efectos & FX_HEAL)       printf("C%d", c->curacion);
-                    if (c->efectos & FX_DRAW)       printf("R%d", c->robar);
-                    if (c->efectos & FX_PLAY_AGAIN) printf("+");
-                    printf("\n");
-                }
-            } else if (cs->fase == COMBAT_ENEMY_WAIT) {
-                printf("\n [RIVAL JUGANDO] Espera...\n");
-            } else if (cs->fase == COMBAT_WIN) {
-                printf("\n VICTORIA! START:Continuar\n");
-            } else if (cs->fase == COMBAT_LOSE) {
-                printf("\n DERROTA... START:Continuar\n");
-            }
-            break;
+    if (gs->fase == GAME_COMBAT) {
+        CombatState* cs = &gs->combate;
+        
+        // Dibujar el Mazo (esquina inferior derecha)
+        if (gfx_card_gfx_mem) {
+            oamSet(&oamSub, 0, 200, 110, 0, 0, SpriteSize_32x64, SpriteColorFormat_16Color, 
+                   gfx_card_gfx_mem, -1, false, false, false, false, false);
         }
-
-        case GAME_RESULT:
-            printf("\n\n\n\n");
-            printf("   START: Menu Principal\n");
-            break;
+               
+        // Dibujar las cartas en la mano
+        for (int i = 0; i < cs->jugador.deck.mano_size; i++) {
+            const CardData* c = cs->jugador.deck.mano[i];
+            
+            int x = i * 36 + 10;
+            int y = 120;
+            
+            // Si esta siendo arrastrada
+            if (i == cs->dragged_card_idx) {
+                x = cs->drag_x;
+                y = cs->drag_y;
+            }
+            
+            // Color de la carta
+            int pal = 0; // default blanco
+            if (c->efectos & FX_ATTACK) pal = 1;      // Rojo
+            else if (c->efectos & FX_SHIELD) pal = 2; // Azul
+            else if (c->efectos & FX_HEAL) pal = 3;   // Verde
+            else pal = 4;                             // Morado
+            
+            if (gfx_card_gfx_mem) {
+                oamSet(&oamSub, i + 1, x, y, 0, pal, SpriteSize_32x64, SpriteColorFormat_16Color, 
+                       gfx_card_gfx_mem, -1, false, false, false, false, false);
+            }
+        }
     }
 }

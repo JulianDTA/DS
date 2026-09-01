@@ -34,7 +34,7 @@ void deck_shuffle(DeckState* ds);
 
 // Roba N cartas del mazo y las pone en la mano
 // Si el mazo se queda vacio, recicla la pila de descarte
-void deck_draw(DeckState* ds, int n);
+bool deck_draw(DeckState* ds, int n);
 
 // Juega la carta en la posicion 'index' de la mano (la mueve al descarte)
 const CardData* deck_play_from_hand(DeckState* ds, int index);
@@ -47,7 +47,7 @@ int deck_damage_shields(DeckState* ds, int dano);
 
 void deck_add_to_hand(DeckState* ds, const CardData* carta);
 const CardData* deck_steal_random_from_hand(DeckState* ds);
-const CardData* deck_steal_top_from_deck(DeckState* ds);
+const CardData* deck_steal_top_from_deck(DeckState* ds, bool* did_shuffle);
 const CardData* deck_steal_random_from_discard(DeckState* ds);
 
 #endif
