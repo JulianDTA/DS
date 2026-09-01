@@ -160,7 +160,7 @@ static void print_match_result(int winner, int loser, bool player_won) {
 }
 
 void game_draw_top(GameState* gs) {
-    // TODO: Renderizar fondos y UI superior
+    // Top screen is now a background image.
 }
 
 #include "graphics.h"
@@ -174,7 +174,7 @@ void game_draw_bottom(GameState* gs) {
         
         // Dibujar el Mazo (esquina inferior derecha)
         if (gfx_card_gfx_mem) {
-            oamSet(&oamSub, 0, 200, 110, 0, 0, SpriteSize_32x64, SpriteColorFormat_16Color, 
+            oamSet(&oamSub, 0, 200, 110, 0, 0, SpriteSize_32x64, SpriteColorFormat_256Color, 
                    gfx_card_gfx_mem, -1, false, false, false, false, false);
         }
                
@@ -199,7 +199,7 @@ void game_draw_bottom(GameState* gs) {
             else pal = 4;                             // Morado
             
             if (gfx_card_gfx_mem) {
-                oamSet(&oamSub, i + 1, x, y, 0, pal, SpriteSize_32x64, SpriteColorFormat_16Color, 
+                oamSet(&oamSub, i + 1, x, y, 0, pal, SpriteSize_32x64, SpriteColorFormat_256Color, 
                        gfx_card_gfx_mem, -1, false, false, false, false, false);
             }
         }

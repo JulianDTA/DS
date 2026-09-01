@@ -63,7 +63,10 @@ build/EcuaTrials/source/graphics.c.o: source/graphics.c \
  /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/peripherals/slot2tilt.h \
  /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/dsp.h \
  /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/fifo.h \
- /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/tlf.h
+ /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/tlf.h \
+ build/EcuaTrials/gfx/bg_top.h build/EcuaTrials/gfx/bg_bottom.h \
+ build/EcuaTrials/gfx/spr_card_back.h build/EcuaTrials/gfx/spr_cantuna.h \
+ build/EcuaTrials/gfx/spr_tunda.h
 include/graphics.h:
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds.h:
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/bios.h:
@@ -129,3 +132,8 @@ include/graphics.h:
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/dsp.h:
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/fifo.h:
 /opt/wonderful/thirdparty/blocksds/core/libs/libnds/include/nds/arm9/teak/tlf.h:
+build/EcuaTrials/gfx/bg_top.h:
+build/EcuaTrials/gfx/bg_bottom.h:
+build/EcuaTrials/gfx/spr_card_back.h:
+build/EcuaTrials/gfx/spr_cantuna.h:
+build/EcuaTrials/gfx/spr_tunda.h:
