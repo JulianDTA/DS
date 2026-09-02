@@ -4,6 +4,8 @@
 
 u16* gfx_cantuna;
 u16* gfx_tunda;
+PrintConsole topConsoleData;
+PrintConsole subConsoleData;
 PrintConsole* topConsole;
 PrintConsole* subConsole;
 
@@ -19,17 +21,18 @@ void gfx_init() {
 
 
     // Inicializar consola superior (HP)
-    topConsole = consoleInit(NULL, 3, BgType_Text4bpp, BgSize_T_256x256, 4, 6, true, true);
+    topConsole = consoleInit(&topConsoleData, 3, BgType_Text4bpp, BgSize_T_256x256, 4, 6, true, true);
     bgSetPriority(topConsole->bgId, 0);
     // Configurar color de texto
-    BG_PALETTE[255] = RGB15(31, 31, 31); // Blanco
+    BG_PALETTE[255] = RGB15(0, 0, 0); // Negro
     BG_PALETTE[240] = 0; // Transparente
+    BG_PALETTE[241] = RGB15(0, 0, 0); // Negro
     
     // Inicializar consola inferior (Lore)
 
     // mapBase 4 (8KB), tileBase 6 (96KB). Usa los colores 240-255.
 
-    subConsole = consoleInit(NULL, 3, BgType_Text4bpp, BgSize_T_256x256, 4, 6, false, true);
+    subConsole = consoleInit(&subConsoleData, 3, BgType_Text4bpp, BgSize_T_256x256, 4, 6, false, true);
     bgSetPriority(subConsole->bgId, 0);
 
         bgSetPriority(subConsole->bgId, 0);
@@ -56,7 +59,10 @@ void gfx_init() {
     if (gfx_tunda) {
         dmaCopy(spr_tundaTiles, gfx_tunda, spr_tundaTilesLen);
     }
-    dmaCopy(spr_tundaPal, SPRITE_PALETTE, spr_tundaPalLen);
+    vramSetBankF(VRAM_F_LCD);
+    dmaCopy(spr_cantunaPal, &VRAM_F_EXT_SPR_PALETTE[0], spr_cantunaPalLen);
+    dmaCopy(spr_tundaPal, &VRAM_F_EXT_SPR_PALETTE[1], spr_tundaPalLen);
+    vramSetBankF(VRAM_F_SPRITE_EXT_PALETTE);
 
     // 3. Cargar Fondos
     int bg_top_id = bgInit(0, BgType_Text8bpp, BgSize_T_256x256, 0, 1);

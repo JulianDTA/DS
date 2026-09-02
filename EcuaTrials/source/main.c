@@ -15,6 +15,7 @@ void init_hardware() {
     videoSetMode(MODE_0_2D | DISPLAY_SPR_ACTIVE | DISPLAY_SPR_1D | DISPLAY_BG0_ACTIVE | DISPLAY_BG3_ACTIVE);
     vramSetBankA(VRAM_A_MAIN_BG);
     vramSetBankB(VRAM_B_MAIN_SPRITE);
+    vramSetBankF(VRAM_F_SPRITE_EXT_PALETTE);
     
     // Pantalla Inferior (Sub): Fondos 2D y Sprites
     videoSetModeSub(MODE_0_2D | DISPLAY_SPR_ACTIVE | DISPLAY_SPR_1D | DISPLAY_BG0_ACTIVE | DISPLAY_BG3_ACTIVE);
@@ -22,7 +23,7 @@ void init_hardware() {
     vramSetBankD(VRAM_D_SUB_SPRITE);
     
     // Inicializar OAM
-    oamInit(&oamMain, SpriteMapping_1D_32, false);
+    oamInit(&oamMain, SpriteMapping_1D_32, true);
     oamInit(&oamSub, SpriteMapping_1D_32, false);
     
     gfx_init();

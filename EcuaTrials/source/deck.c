@@ -76,8 +76,10 @@ const CardData* deck_play_from_hand(DeckState* ds, int index) {
     const CardData* carta = ds->mano[index];
     
     // Mover la carta al descarte
-    ds->descarte[ds->descarte_size] = carta;
-    ds->descarte_size++;
+    if (ds->descarte_size < MAX_DECK_SIZE) {
+        ds->descarte[ds->descarte_size] = carta;
+        ds->descarte_size++;
+    }
     
     // Cerrar el hueco en la mano (desplazar las cartas)
     for (int i = index; i < ds->mano_size - 1; i++) {
@@ -121,8 +123,10 @@ int deck_damage_shields(DeckState* ds, int dano) {
 void deck_add_to_hand(DeckState* ds, const CardData* carta) {
     if (!carta) return;
     if (ds->mano_size >= MAX_HAND_SIZE) {
-        ds->descarte[ds->descarte_size] = carta;
-        ds->descarte_size++;
+        if (ds->descarte_size < MAX_DECK_SIZE) {
+            ds->descarte[ds->descarte_size] = carta;
+            ds->descarte_size++;
+        }
     } else {
         ds->mano[ds->mano_size] = carta;
         ds->mano_size++;
@@ -166,4 +170,12 @@ const CardData* deck_steal_random_from_discard(DeckState* ds) {
     }
     ds->descarte_size--;
     return carta;
+}
+
+int deck_get_total_shield(DeckState* ds) {
+    int total = 0;
+    for (int i=0; i<MAX_SHIELDS; i++) {
+        if (ds->escudos[i].activo) total += ds->escudos[i].durabilidad;
+    }
+    return total;
 }

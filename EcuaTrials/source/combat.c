@@ -74,7 +74,7 @@ void combat_resolve_card(CombatState* cs, Fighter* atacante, Fighter* defensor, 
     // --- ESCUDO ---
     if (carta->efectos & FX_SHIELD) {
         deck_add_shield(&atacante->deck, carta->escudo);
-        snprintf(buf, 31, "+%d Escudo!", carta->escudo);
+        snprintf(buf, 31, "%s: +%d Escudo", atacante->nombre, carta->escudo);
         combat_log(cs, buf);
     }
 
@@ -83,22 +83,33 @@ void combat_resolve_card(CombatState* cs, Fighter* atacante, Fighter* defensor, 
         atacante->hp += carta->curacion;
         if (atacante->hp > atacante->max_hp)
             atacante->hp = atacante->max_hp;
-        snprintf(buf, 31, "+%d HP! (HP:%d)", carta->curacion, atacante->hp);
+        snprintf(buf, 31, "%s: +%d HP", atacante->nombre, carta->curacion);
         combat_log(cs, buf);
     }
 
     // --- ROBAR CARTAS ---
     if (carta->efectos & FX_DRAW) {
-        deck_draw(&atacante->deck, carta->robar);
-        snprintf(buf, 31, "Roba %d carta(s)", carta->robar);
+        if (deck_draw(&atacante->deck, carta->robar)) combat_log(cs, "Mazo reiniciado!");
+        snprintf(buf, 31, "%s: Roba %d", atacante->nombre, carta->robar);
         combat_log(cs, buf);
     }
 
+    // --- ROBAR CARTA DEL RIVAL (HAND) ---
     if (carta->efectos & FX_STEAL_HAND) {
-        const CardData* robada = deck_steal_random_from_hand(&defensor->deck);
-        if (robada) {
-            deck_add_to_hand(&atacante->deck, robada);
-            combat_log(cs, "Roba 1 carta de la mano!");
+        if (defensor->deck.mano_size > 0) {
+            int r = rand() % defensor->deck.mano_size;
+            const CardData* stolen = defensor->deck.mano[r];
+            for (int j = r; j < defensor->deck.mano_size - 1; j++) {
+                defensor->deck.mano[j] = defensor->deck.mano[j+1];
+            }
+            defensor->deck.mano_size--;
+            if (atacante->deck.mano_size < MAX_HAND_SIZE) {
+                atacante->deck.mano[atacante->deck.mano_size++] = stolen;
+            } else if (atacante->deck.descarte_size < MAX_DECK_SIZE) {
+                atacante->deck.descarte[atacante->deck.descarte_size++] = stolen;
+            }
+            snprintf(buf, 31, "%s roba carta rival", atacante->nombre);
+            combat_log(cs, buf);
         } else {
             combat_log(cs, "Mano rival vacia!");
         }
@@ -138,7 +149,7 @@ void combat_resolve_card(CombatState* cs, Fighter* atacante, Fighter* defensor, 
         if (dano_restante > 0) {
             defensor->hp -= dano_restante;
             if (defensor->hp < 0) defensor->hp = 0;
-            snprintf(buf, 31, "-%d HP! (%s:%d)", dano_restante, defensor->nombre, defensor->hp);
+            snprintf(buf, 31, "%s recibe %d dmg", defensor->nombre, dano_restante);
             combat_log(cs, buf);
         }
     }
@@ -287,8 +298,31 @@ void combat_update(CombatState* cs, int keys_down, touchPosition* touch) {
             int tch_up   = keysUp();
             
             if (tch_down & KEY_TOUCH) {
-                // Chequear Mazo (zona inferior derecha)
-                if (touch->px > 200 && touch->py > 110) {
+                bool touched_card = false;
+                // Chequear cartas en mano primero para evitar superposicion
+                for (int i = 0; i < cs->jugador.deck.mano_size; i++) {
+                    int cx = get_card_x(i, cs->jugador.deck.mano_size);
+                    int cy = 120;
+                    if (touch->px >= cx && touch->px <= cx + 32 &&
+                        touch->py >= cy && touch->py <= cy + 64) {
+                        cs->dragged_card_idx = i;
+                        cs->drag_x = touch->px - 16;
+                        cs->drag_y = touch->py - 32;
+                        
+                        // Check double tap
+                        if (cs->last_tapped_idx == i && cs->double_tap_timer > 0) {
+                            cs->force_play = true;
+                        }
+                        cs->last_tapped_idx = i;
+                        cs->double_tap_timer = 20; // ~1/3 of a second to double tap
+                        
+                        touched_card = true;
+                        break;
+                    }
+                }
+                
+                // Si no toco una carta, chequear Mazo (zona inferior derecha)
+                if (!touched_card && touch->px > 200 && touch->py > 110) {
                     if (!cs->ya_robo_turno && !cs->carta_jugada_este_turno) {
                         if (cs->jugador.deck.mano_size == 0) {
                             if (deck_draw(&cs->jugador.deck, 2)) combat_log(cs, "Mazo reiniciado!");
@@ -299,32 +333,15 @@ void combat_update(CombatState* cs, int keys_down, touchPosition* touch) {
                         }
                         cs->ya_robo_turno = true;
                     }
-                } else {
-                    // Chequear cartas en mano
-                    for (int i = 0; i < cs->jugador.deck.mano_size; i++) {
-                        int cx = i * 36 + 10;
-                        int cy = 120;
-                        if (touch->px >= cx && touch->px <= cx + 32 &&
-                            touch->py >= cy && touch->py <= cy + 64) {
-                            cs->dragged_card_idx = i;
-                            cs->drag_x = touch->px - 16;
-                            cs->drag_y = touch->py - 32;
-                            
-                            // Check double tap
-                            if (cs->last_tapped_idx == i && cs->double_tap_timer > 0) {
-                                cs->force_play = true;
-                            }
-                            cs->last_tapped_idx = i;
-                            cs->double_tap_timer = 20; // ~1/3 of a second to double tap
-                            
-                            break;
-                        }
-                    }
                 }
             } else if (tch_held & KEY_TOUCH) {
                 if (cs->dragged_card_idx >= 0) {
-                    cs->drag_x = touch->px - 16;
-                    cs->drag_y = touch->py - 32;
+                    int target_x = touch->px - 16;
+                    int target_y = touch->py - 32;
+                    
+                    // Deadzone to prevent touchscreen hardware jitter
+                    if (abs(target_x - cs->drag_x) > 1) cs->drag_x = target_x;
+                    if (abs(target_y - cs->drag_y) > 1) cs->drag_y = target_y;
                 }
             } else if (tch_up & KEY_TOUCH) {
                 if (cs->dragged_card_idx >= 0) {
@@ -354,7 +371,8 @@ void combat_update(CombatState* cs, int keys_down, touchPosition* touch) {
                                 } else {
                                     combat_log(cs, "Fin de tu turno.");
                                     cs->ya_robo_turno = false;
-                                    cs->fase = COMBAT_ENEMY_TURN;
+                                    cs->fase = COMBAT_ENEMY_THINKING;
+                                    cs->timer = 60;
                                 }
                             }
                         } else {
@@ -367,6 +385,14 @@ cs->dragged_card_idx = -1;
             }
             break;
         }
+
+        case COMBAT_ENEMY_THINKING:
+            if (cs->timer > 0) {
+                cs->timer--;
+            } else {
+                cs->fase = COMBAT_ENEMY_TURN;
+            }
+            break;
 
         case COMBAT_ENEMY_TURN:
             if (!cs->ya_robo_turno) {
@@ -392,7 +418,8 @@ cs->dragged_card_idx = -1;
                 // Si la IA puede jugar otra carta por un combo, vuelve a su turno
                 if (cs->rival.puede_jugar_otra && cs->rival.deck.mano_size > 0) {
                     cs->rival.puede_jugar_otra = false;
-                    cs->fase = COMBAT_ENEMY_TURN;
+                    cs->fase = COMBAT_ENEMY_THINKING;
+                    cs->timer = 60;
                 } else {
                     // Si no, verificar K.O. o devolver turno al jugador
                     char buf[32];

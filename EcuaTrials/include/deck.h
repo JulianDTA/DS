@@ -50,4 +50,5 @@ const CardData* deck_steal_random_from_hand(DeckState* ds);
 const CardData* deck_steal_top_from_deck(DeckState* ds, bool* did_shuffle);
 const CardData* deck_steal_random_from_discard(DeckState* ds);
 
+int deck_get_total_shield(DeckState* ds);
 #endif

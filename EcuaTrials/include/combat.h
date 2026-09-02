@@ -13,6 +13,7 @@ typedef enum {
     COMBAT_PLAYER_DRAW,
     COMBAT_PLAYER_TURN,
     COMBAT_PLAYER_RESOLVE,
+    COMBAT_ENEMY_THINKING,
     COMBAT_ENEMY_TURN,
     COMBAT_ENEMY_WAIT,
     COMBAT_ENEMY_RESOLVE,
@@ -64,6 +65,12 @@ typedef struct {
 void combat_init(CombatState* cs,
                  const char* nombre_jugador, const CardData* deck_jugador, int deck_size_j,
                  const char* nombre_rival, const CardData* deck_rival, int deck_size_r);
+
+static inline int get_card_x(int index, int mano_size) {
+    int spacing = 36;
+    if (mano_size > 6) spacing = 200 / mano_size;
+    return index * spacing + 10;
+}
 
 void combat_update(CombatState* cs, int keys_down, touchPosition* touch);
 
