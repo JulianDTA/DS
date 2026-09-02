@@ -97,7 +97,7 @@ void combat_resolve_card(CombatState* cs, Fighter* atacante, Fighter* defensor, 
     // --- ROBAR CARTA DEL RIVAL (HAND) ---
     if (carta->efectos & FX_STEAL_HAND) {
         if (defensor->deck.mano_size > 0) {
-            int r = rand() % defensor->deck.mano_size;
+            int r = deck_rng_next() % defensor->deck.mano_size;
             const CardData* stolen = defensor->deck.mano[r];
             for (int j = r; j < defensor->deck.mano_size - 1; j++) {
                 defensor->deck.mano[j] = defensor->deck.mano[j+1];
@@ -169,7 +169,9 @@ void combat_resolve_card(CombatState* cs, Fighter* atacante, Fighter* defensor, 
         // Anadir a las reglas activas (max 3)
         if (atacante->num_reglas >= 3) {
             // Enviar la mas antigua al descarte
-            atacante->deck.descarte[atacante->deck.descarte_size++] = atacante->reglas_activas[0];
+            if (atacante->deck.descarte_size < MAX_DECK_SIZE) {
+                atacante->deck.descarte[atacante->deck.descarte_size++] = atacante->reglas_activas[0];
+            }
             
             // Desplazar (Shift)
             atacante->reglas_activas[0] = atacante->reglas_activas[1];

@@ -6,7 +6,7 @@
 // Generador de numeros aleatorios simple para la DS
 // =====================================================
 static unsigned int rng_seed = 12345;
-static int rng_next() {
+int deck_rng_next() {
     rng_seed = rng_seed * 1103515245 + 12345;
     return (rng_seed >> 16) & 0x7FFF;
 }
@@ -37,7 +37,7 @@ void deck_init(DeckState* ds, const CardData* cartas, int num_cartas) {
 void deck_shuffle(DeckState* ds) {
     // Fisher-Yates shuffle
     for (int i = ds->mazo_top - 1; i > 0; i--) {
-        int j = rng_next() % (i + 1);
+        int j = deck_rng_next() % (i + 1);
         const CardData* temp = ds->mazo[i];
         ds->mazo[i] = ds->mazo[j];
         ds->mazo[j] = temp;
@@ -135,7 +135,7 @@ void deck_add_to_hand(DeckState* ds, const CardData* carta) {
 
 const CardData* deck_steal_random_from_hand(DeckState* ds) {
     if (ds->mano_size <= 0) return NULL;
-    int idx = rng_next() % ds->mano_size;
+    int idx = deck_rng_next() % ds->mano_size;
     const CardData* carta = ds->mano[idx];
     for (int i = idx; i < ds->mano_size - 1; i++) {
         ds->mano[i] = ds->mano[i + 1];
@@ -163,7 +163,7 @@ const CardData* deck_steal_top_from_deck(DeckState* ds, bool* did_shuffle) {
 
 const CardData* deck_steal_random_from_discard(DeckState* ds) {
     if (ds->descarte_size <= 0) return NULL;
-    int idx = rng_next() % ds->descarte_size;
+    int idx = deck_rng_next() % ds->descarte_size;
     const CardData* carta = ds->descarte[idx];
     for (int i = idx; i < ds->descarte_size - 1; i++) {
         ds->descarte[i] = ds->descarte[i + 1];

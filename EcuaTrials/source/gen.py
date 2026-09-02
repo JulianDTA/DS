@@ -1,4 +1,7 @@
 import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CARD_C_PATH = os.path.join(BASE_DIR, 'card.c')
+import os
 import textwrap
 from cards_data import characters
 
@@ -19,7 +22,7 @@ for char in characters:
         char["cards"][0] = tuple(lst)
         total = sum(c[7] for c in char["cards"])
 
-with open("source/card.c", "w") as f:
+with open(CARD_C_PATH, "w") as f:
     f.write('#include "card.h"\n\n')
     
     # Write arrays

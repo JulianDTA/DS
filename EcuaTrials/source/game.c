@@ -171,10 +171,25 @@ void game_draw_top(GameState* gs) {
         printf("\x1b[10;8HFIN DEL COMBATE\n");
         printf("\x1b[12;5HPulsa START para salir\n");
     } else if (gs->fase == GAME_COMBAT) {
+        // Player (Left)
+        printf("\x1b[10;1H%s", gs->combate.jugador.nombre);
+        printf("\x1b[11;1HHP: %d/%d", gs->combate.jugador.hp, gs->combate.jugador.max_hp);
+        printf("\x1b[12;1HDEF: %d", deck_get_total_shield(&gs->combate.jugador.deck));
         
-        printf("\x1b[11;3HHP: %d", gs->combate.jugador.hp);
-        printf("\x1b[11;24HHP: %d", gs->combate.rival.hp);
+        // Rival (Right)
+        printf("\x1b[10;18H%s", gs->combate.rival.nombre);
+        printf("\x1b[11;18HHP: %d/%d", gs->combate.rival.hp, gs->combate.rival.max_hp);
+        printf("\x1b[12;18HDEF: %d", deck_get_total_shield(&gs->combate.rival.deck));
         
+        // Combat Log (Center Top, Rows 2-7)
+        for (int i = 0; i < gs->combate.log_count; i++) {
+            char* msg = gs->combate.log[i];
+            int len = 0; while (msg[len]) len++;
+            int col = (32 - len) / 2;
+            if (col < 1) col = 1;
+            printf("\x1b[%d;%dH%s", i + 2, col, msg);
+        }
+
         u16* p_gfx = (gs->personaje_elegido == 2) ? gfx_tunda : gfx_cantuna;
         int p_pal = (gs->personaje_elegido == 2) ? 1 : 0;
         u16* r_gfx = (gs->rival_elegido == 2) ? gfx_tunda : gfx_cantuna;

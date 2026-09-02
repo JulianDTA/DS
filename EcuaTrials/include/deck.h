@@ -27,6 +27,7 @@ typedef struct {
 } DeckState;
 
 // Inicializa un mazo con las cartas de un personaje y lo baraja
+int deck_rng_next();
 void deck_init(DeckState* ds, const CardData* cartas, int num_cartas);
 
 // Baraja el mazo
