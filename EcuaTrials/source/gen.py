@@ -34,7 +34,7 @@ with open(CARD_C_PATH, "w") as f:
             for i in range(c[7]):
                 lore_raw = " ".join(c[6])
                 # Auto-wrap to 13 chars
-                lore = textwrap.wrap(lore_raw, width=13)
+                lore = textwrap.wrap(lore_raw, width=17)
                 lores_str = []
                 for j in range(7):
                     if j < len(lore):

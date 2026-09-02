@@ -1,7 +1,10 @@
-with open('source/deck.c', 'r') as f:
+import re
+
+with open('source/game.c', 'r') as f:
     code = f.read()
 
-code = code.replace("int deck_deck_rng_next() {", "int deck_rng_next() {")
+# Replace all literal \\n with \n
+code = code.replace('\\\\n', '\\n')
 
-with open('source/deck.c', 'w') as f:
+with open('source/game.c', 'w') as f:
     f.write(code)

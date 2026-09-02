@@ -116,42 +116,32 @@ void game_update(GameState* gs, int keys_down, touchPosition* touch) {
 // PANTALLA SUPERIOR: Descripcion y lore de la carta seleccionada
 // =====================================================
 static void print_match_result(int winner, int loser, bool player_won) {
-    printf("\n\n\n");
     if (player_won) {
-        printf("   FELICIDADES!\n\n");
-        printf("   %s ha vencido\n", NOMBRES_PERSONAJES[winner]);
-        printf("   a %s!\n\n", NOMBRES_PERSONAJES[loser]);
+        printf("\x1b[3;4HFELICIDADES!");
+        printf("\x1b[5;4H%s ha vencido", NOMBRES_PERSONAJES[winner]);
+        printf("\x1b[6;4Ha %s!", NOMBRES_PERSONAJES[loser]);
     } else {
-        printf("   HAS CAIDO...\n\n");
-        printf("   %s fue derrotado\n", NOMBRES_PERSONAJES[loser]);
-        printf("   por %s.\n\n", NOMBRES_PERSONAJES[winner]);
+        printf("\x1b[3;4HHAS CAIDO...");
+        printf("\x1b[5;4H%s fue derrotado", NOMBRES_PERSONAJES[loser]);
+        printf("\x1b[6;4Hpor %s.", NOMBRES_PERSONAJES[winner]);
     }
-    printf("   \"");
-    if (winner == 0 && loser == 7) printf("%s", "El oro del diablo supera\n   a la magia oscura.");
-    else if (winner == 8 && loser == 9) printf("%s", "El paramo no tiene\n   piedad de las lagrimas.");
-    else if (winner == 9 && loser == 10) printf("%s", "Un bebe mas arrastrado\n   al fondo del rio...");
-    else if (winner == 4 && loser == 1) printf("%s", "El seductor cayo\n   en la trampa mortal.");
-    else if (winner == 3 && loser == 7) printf("%s", "Almeida seguira bebiendo;\n   el otro seguira penando.");
-    else if (winner == 6 && loser == 0) printf("%s", "La Catedral impone\n   su ley sobre San Francisco.");
-    else if (winner == 5 && loser == 9) printf("%s", "Tus llantos no callaran\n   mis gritos de culpa!");
-    else if (winner == 10 && loser == 11) printf("%s", "Un demonio pequenito\n   gano a la tentacion.");
-    else if (winner == 2 && loser == 5) printf("%s", "La nina traviesa termino\n   entundada en el manglar.");
-    else if (winner == 11 && loser == 3) printf("%s", "La farra termino bajo\n   el arbol de tamarindo.");
-    else if (winner == 0) printf("%s", "La arquitectura perfecta\n   nunca se derrumba.");
-    else if (winner == 1) printf("%s", "Una travesura rapida\n   fue mas que suficiente.");
-    else if (winner == 2) printf("%s", "Nadie escapa vivo de\n   los manglares...");
-    else if (winner == 3) printf("%s", "Hasta la vuelta, senor!\n   Y a seguir bebiendo.");
-    else if (winner == 4) printf("%s", "El terror absoluto\n   paralizo al oponente.");
-    else if (winner == 5) printf("%s", "Devuelveme mis tripas!\n   La venganza esta servida.");
-    else if (winner == 6) printf("%s", "Un canto de victoria\n   resuena en la plaza.");
-    else if (winner == 7) printf("%s", "La magia de ultratumba\n   consumio su alma.");
-    else if (winner == 8) printf("%s", "Fuerza bruta y salvaje\n   sin contemplaciones.");
-    else if (winner == 9) printf("%s", "Tanto dolor y pena\n   terminan ahogando a todos.");
-    else if (winner == 10) printf("%s", "Un llanto enganoso\n   termino en masacre.");
-    else if (winner == 11) printf("%s", "Una trampa de la que\n   nunca despertara.");
-    else printf("%s", "Victoria absoluta.");
-    printf("\"\n\n\n");
-    printf("   START: Menu Principal\n");
+    printf("\x1b[9;4H\"");
+    
+    // Line 9 and 10 for the quote
+    if (winner == 0 && loser == 7) printf("\x1b[9;5HEl oro del diablo supera\x1b[10;5Ha la magia oscura.");
+    else if (winner == 8 && loser == 9) printf("\x1b[9;5HEl paramo no tiene\x1b[10;5Hpiedad de las lagrimas.");
+    else if (winner == 9 && loser == 10) printf("\x1b[9;5HUn bebe mas arrastrado\x1b[10;5Hal fondo del rio...");
+    else if (winner == 4 && loser == 1) printf("\x1b[9;5HEl seductor cayo\x1b[10;5Hen la trampa mortal.");
+    else if (winner == 3 && loser == 7) printf("\x1b[9;5HAlmeida seguira bebiendo;\x1b[10;5Hel otro seguira penando.");
+    else if (winner == 6 && loser == 0) printf("\x1b[9;5HLa Catedral impone\x1b[10;5Hsu ley sobre San Francisco.");
+    else if (winner == 5 && loser == 9) printf("\x1b[9;5HTus llantos no callaran\x1b[10;5Hmis gritos de culpa!");
+    else if (winner == 10 && loser == 11) printf("\x1b[9;5HUn demonio pequenito\x1b[10;5Hgano a la tentacion.");
+    else if (winner == 2 && loser == 5) printf("\x1b[9;5HLa nina traviesa termino\x1b[10;5Hentundada en el manglar.");
+    else if (winner == 1 && loser == 8) printf("\x1b[9;5HEl duende robo el orgullo\x1b[10;5Hdel monstruo andino.");
+    else if (winner == 7 && loser == 4) printf("\x1b[9;5HNi tu perfume apagara\x1b[10;5Hlas llamas del infierno.");
+    else if (winner == 11 && loser == 3) printf("\x1b[9;5HVen, padrecito, acercate\x1b[10;5Hal tamarindo...");
+    else printf("\x1b[9;5HEl destino favorece\x1b[10;5Hal vencedor hoy.");
+    printf("\"");
 }
 
 void game_draw_top(GameState* gs) {
@@ -160,28 +150,28 @@ void game_draw_top(GameState* gs) {
     printf("\x1b[2J");
     
     if (gs->fase == GAME_TITLE) {
-        printf("\x1b[10;8HECUATRIALS\n");
-        printf("\x1b[12;5HPulsa START para jugar\n");
+        printf("\x1b[4;8HECUATRIALS\n");
+        printf("\x1b[6;5HPulsa START para jugar\n");
     } else if (gs->fase == GAME_SELECT_CHAR) {
-        printf("\x1b[10;5HSELECCION DE PERSONAJE\n");
-        printf("\x1b[12;8H%s\n", NOMBRES_PERSONAJES[gs->personaje_elegido]);
-        printf("\x1b[14;5HPulsa A para confirmar\n");
-        printf("\x1b[16;5HPulsa B para volver\n");
+        printf("\x1b[2;5HSELECCION DE PERSONAJE\n");
+        printf("\x1b[4;8H%s\n", NOMBRES_PERSONAJES[gs->personaje_elegido]);
+        printf("\x1b[6;5HPulsa A para confirmar\n");
+        printf("\x1b[7;5HPulsa B para volver\n");
     } else if (gs->fase == GAME_RESULT) {
-        printf("\x1b[10;8HFIN DEL COMBATE\n");
-        printf("\x1b[12;5HPulsa START para salir\n");
+        printf("\x1b[4;8HFIN DEL COMBATE\n");
+        printf("\x1b[6;5HPulsa START para salir\n");
     } else if (gs->fase == GAME_COMBAT) {
-        // Player (Left)
-        printf("\x1b[10;1H%s", gs->combate.jugador.nombre);
-        printf("\x1b[11;1HHP: %d/%d", gs->combate.jugador.hp, gs->combate.jugador.max_hp);
-        printf("\x1b[12;1HDEF: %d", deck_get_total_shield(&gs->combate.jugador.deck));
+        // Player (Left) - moved to bottom of top screen
+        printf("\x1b[21;1H%s", gs->combate.jugador.nombre);
+        printf("\x1b[22;1HHP: %d/%d", gs->combate.jugador.hp, gs->combate.jugador.max_hp);
+        printf("\x1b[23;1HDEF: %d", deck_get_total_shield(&gs->combate.jugador.deck));
         
-        // Rival (Right)
-        printf("\x1b[10;18H%s", gs->combate.rival.nombre);
-        printf("\x1b[11;18HHP: %d/%d", gs->combate.rival.hp, gs->combate.rival.max_hp);
-        printf("\x1b[12;18HDEF: %d", deck_get_total_shield(&gs->combate.rival.deck));
+        // Rival (Right) - moved to bottom of top screen
+        printf("\x1b[21;18H%s", gs->combate.rival.nombre);
+        printf("\x1b[22;18HHP: %d/%d", gs->combate.rival.hp, gs->combate.rival.max_hp);
+        printf("\x1b[23;18HDEF: %d", deck_get_total_shield(&gs->combate.rival.deck));
         
-        // Combat Log (Center Top, Rows 2-7)
+        // Combat Log (Center Top, Rows 2-7) stays in the sky!
         for (int i = 0; i < gs->combate.log_count; i++) {
             char* msg = gs->combate.log[i];
             int len = 0; while (msg[len]) len++;
@@ -294,232 +284,209 @@ void game_draw_bottom(GameState* gs) {
     } else if (gs->fase == GAME_TITLE) {
         consoleSelect(subConsole);
         printf("\x1b[2J");
-        printf("\n\n\n\n\n   BATALLAS MITOLOGICAS\n   DEL ECUADOR\n\n   Presiona START en la\n   pantalla superior.");
+        printf("\x1b[5;4HBATALLAS MITOLOGICAS");
+        printf("\x1b[6;4HDEL ECUADOR");
+        printf("\x1b[9;4HPresiona START en la");
+        printf("\x1b[10;4Hpantalla superior.");
     } else if (gs->fase == GAME_SELECT_CHAR) {
         consoleSelect(subConsole);
         printf("\x1b[2J");
-        printf("\n\n");
         switch (gs->personaje_elegido) {
-case 0:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[0]);
-    printf("   ========================\n\n");
-    printf("   Cuenta la leyenda que\n");
-    printf("   Cantuna hizo un pacto con\n");
-    printf("   el diablo para construir\n");
-    printf("   la Iglesia de San Francisco\n");
-    printf("   en una sola noche.\n");
-    printf("   \n");
-    printf("   Pero el astuto constructor\n");
-    printf("   quito un ladrillo antes de\n");
-    printf("   amanecer, y el diablo no\n");
-    printf("   pudo reclamar su alma.\n");
-    printf("   \n");
-    printf("   Rol: TANQUE\n");
-    printf("   Escudos fuertes, golpes\n");
-    printf("   devastadores.\n");
-    break;
-case 1:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[1]);
-    printf("   ========================\n\n");
-    printf("   Un duende travieso de la\n");
-    printf("   costa ecuatoriana.\n");
-    printf("   Usa un sombrero enorme y\n");
-    printf("   aparece en las sombras\n");
-    printf("   para asustar a la gente.\n");
-    printf("   \n");
-    printf("   Le encanta esconder cosas,\n");
-    printf("   hacer nudos en el cabello\n");
-    printf("   y robar de los bolsillos\n");
-    printf("   con sus manos rapidas.\n");
-    printf("   \n");
-    printf("   Rol: AGRESOR\n");
-    printf("   Ataques rapidos, combos\n");
-    printf("   impredecibles.\n");
-    break;
-case 2:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[2]);
-    printf("   ========================\n\n");
-    printf("   Espiritu del manglar.\n");
-    printf("   Tiene una pierna humana\n");
-    printf("   y otra de molinillo.\n");
-    printf("   \n");
-    printf("   Se disfraza de un ser\n");
-    printf("   querido para atraer a\n");
-    printf("   los ninos al bosque\n");
-    printf("   ofreciendo camarones.\n");
-    printf("   Asi los hipnotiza.\n");
-    printf("   \n");
-    printf("   Rol: CONTROL\n");
-    printf("   Curacion poderosa y\n");
-    printf("   drenaje de vida.\n");
-    break;
-case 3:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[3]);
-    printf("   ========================\n\n");
-    printf("   Un sacerdote franciscano\n");
-    printf("   que escapaba del convento\n");
-    printf("   para irse de farra.\n");
-    printf("   \n");
-    printf("   Pisaba la estatua de\n");
-    printf("   Cristo, quien le pregunto:\n");
-    printf("   Hasta cuando Padre\n");
-    printf("   Almeida? El respondio:\n");
-    printf("   Hasta la vuelta, Senor.\n");
-    printf("   \n");
-    printf("   Rol: COMBO\n");
-    printf("   Poca defensa pero\n");
-    printf("   mucho robo de cartas.\n");
-    break;
-case 4:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[4]);
-    printf("   ========================\n\n");
-    printf("   Misteriosa mujer que\n");
-    printf("   camina por Guayaquil a\n");
-    printf("   la medianoche.\n");
-    printf("   Su perfume embriagador\n");
-    printf("   atrae a los hombres.\n");
-    printf("   \n");
-    printf("   Al quitarse el velo,\n");
-    printf("   muestra su craneo y\n");
-    printf("   un olor a muerte que\n");
-    printf("   paraliza a sus victimas.\n");
-    printf("   \n");
-    printf("   Rol: TERROR\n");
-    printf("   Debuffs, escudos y\n");
-    printf("   dano masivo.\n");
-    break;
-case 5:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[5]);
-    printf("   ========================\n\n");
-    printf("   Nina muy golosa.\n");
-    printf("   Su madre le pidio\n");
-    printf("   comprar tripas, pero\n");
-    printf("   se gasto el dinero.\n");
-    printf("   \n");
-    printf("   Para enganarla, robo\n");
-    printf("   las tripas de un muerto.\n");
-    printf("   El espiritu la busco\n");
-    printf("   gritando por sus tripas.\n");
-    printf("   \n");
-    printf("   Rol: AGRESOR\n");
-    printf("   Ataques freneticos y\n");
-    printf("   comportamiento salvaje.\n");
-    break;
-case 6:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[6]);
-    printf("   ========================\n\n");
-    printf("   El gallo de bronce de\n");
-    printf("   la Catedral cobro vida\n");
-    printf("   para darle una leccion\n");
-    printf("   a Don Ramon Ayala,\n");
-    printf("   un hombre jactancioso.\n");
-    printf("   \n");
-    printf("   Despues de que lo\n");
-    printf("   insultara repetidas veces,\n");
-    printf("   el ave dorada bajo a\n");
-    printf("   picotearlo sin piedad.\n");
-    printf("   \n");
-    printf("   Rol: EQUILIBRADO\n");
-    printf("   Ataques desde el aire,\n");
-    printf("   buena curacion.\n");
-    break;
-case 7:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[7]);
-    printf("   ========================\n\n");
-    printf("   El espectro de un\n");
-    printf("   sacerdote condenado\n");
-    printf("   a vagar sin su cabeza\n");
-    printf("   por sus terribles pecados.\n");
-    printf("   \n");
-    printf("   Su silueta oscura\n");
-    printf("   atormenta las calles,\n");
-    printf("   emanando un frio\n");
-    printf("   sobrenatural a su paso.\n");
-    printf("   \n");
-    printf("   Rol: MAGIA\n");
-    printf("   Dano magico norme,\n");
-    printf("   imposible de bloquear.\n");
-    break;
-case 8:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[8]);
-    printf("   ========================\n\n");
-    printf("   Una criatura salvaje\n");
-    printf("   de los paramos andinos.\n");
-    printf("   Mitad nino, mitad bestia,\n");
-    printf("   protege a los animales.\n");
-    printf("   \n");
-    printf("   Tiene una agresividad\n");
-    printf("   desmedida y ataca con\n");
-    printf("   furia incontrolable a\n");
-    printf("   quien falte el respeto.\n");
-    printf("   \n");
-    printf("   Rol: SALVAJE\n");
-    printf("   Ataques brutales puros\n");
-    printf("   con nula defensa.\n");
-    break;
-case 9:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[9]);
-    printf("   ========================\n\n");
-    printf("   El alma en pena de\n");
-    printf("   una mujer que perdio a\n");
-    printf("   su hijo en un rio.\n");
-    printf("   \n");
-    printf("   Vaga por las orillas\n");
-    printf("   llorando sin consuelo.\n");
-    printf("   Su inmenso dolor\n");
-    printf("   marchita las plantas y\n");
-    printf("   hiela la sangre.\n");
-    printf("   \n");
-    printf("   Rol: TRISTEZA\n");
-    printf("   Mucha curacion base y\n");
-    printf("   escudos impenetrables.\n");
-    break;
-case 10:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[10]);
-    printf("   ========================\n\n");
-    printf("   El espiritu de un bebe\n");
-    printf("   no bautizado que fue\n");
-    printf("   abandonado. Su llanto\n");
-    printf("   despierta compasion.\n");
-    printf("   \n");
-    printf("   Pero cuando un viajero\n");
-    printf("   lo toma en sus brazos,\n");
-    printf("   el bebe muestra dientes\n");
-    printf("   de demonio y ataca.\n");
-    printf("   \n");
-    printf("   Rol: SORPRESA\n");
-    printf("   Robo de cartas\n");
-    printf("   y ataques enganosos.\n");
-    break;
-case 11:
-    printf("   ========================\n");
-    printf("   %s\n", NOMBRES_PERSONAJES[11]);
-    printf("   ========================\n\n");
-    printf("   El fantasma de una\n");
-    printf("   mujer que ronda un\n");
-    printf("   antiguo tamarindo.\n");
-    printf("   \n");
-    printf("   Llora buscando consuelo,\n");
-    printf("   pero si alguien se le\n");
-    printf("   acerca, revela un rostro\n");
-    printf("   que provoca la locura.\n");
-    printf("   \n");
-    printf("   Rol: TRAMPA\n");
-    printf("   Drenaje de vida,\n");
-    printf("   ilusiones y control.\n");
-    break;
-
+        case 0:
+            printf("\x1b[3;4H%s\n\n", NOMBRES_PERSONAJES[0]);
+            printf("\x1b[5;3HCuenta la leyenda que");
+            printf("\x1b[6;3HCantuna hizo un pacto con");
+            printf("\x1b[7;3Hel diablo para construir");
+            printf("\x1b[8;3Hla Iglesia de San Francisco");
+            printf("\x1b[9;3Hen una sola noche.");
+            printf("\x1b[10;3H");
+            printf("\x1b[11;3HPero el astuto constructor");
+            printf("\x1b[12;3Hquito un ladrillo antes de");
+            printf("\x1b[13;3Hamanecer, y el diablo no");
+            printf("\x1b[14;3Hpudo reclamar su alma.");
+            printf("\x1b[15;3H");
+            printf("\x1b[16;3HRol: TANQUE");
+            printf("\x1b[17;3HEscudos fuertes, golpes");
+            printf("\x1b[18;3Hdevastadores.");
+            break;
+        case 1:
+            printf("\x1b[3;4H%s\n\n", NOMBRES_PERSONAJES[1]);
+            printf("\x1b[5;3HUn duende travieso de la");
+            printf("\x1b[6;3Hcosta ecuatoriana.");
+            printf("\x1b[7;3HUsa un sombrero enorme y");
+            printf("\x1b[8;3Haparece en las sombras");
+            printf("\x1b[9;3Hpara asustar a la gente.");
+            printf("\x1b[10;3H");
+            printf("\x1b[11;3HLe encanta esconder cosas,");
+            printf("\x1b[12;3Hhacer nudos en el cabello");
+            printf("\x1b[13;3Hy robar de los bolsillos");
+            printf("\x1b[14;3Hcon sus manos rapidas.");
+            printf("\x1b[15;3H");
+            printf("\x1b[16;3HRol: AGRESOR");
+            printf("\x1b[17;3HAtaques rapidos, combos");
+            printf("\x1b[18;3Himpredecibles.");
+            break;
+        case 2:
+            printf("\x1b[3;4H%s\n\n", NOMBRES_PERSONAJES[2]);
+            printf("\x1b[5;3HEspiritu del manglar.");
+            printf("\x1b[6;3HTiene una pierna humana");
+            printf("\x1b[7;3Hy otra de molinillo.");
+            printf("\x1b[8;3H");
+            printf("\x1b[9;3HSe disfraza de un ser");
+            printf("\x1b[10;3Hquerido para atraer a");
+            printf("\x1b[11;3Hlos ninos al bosque");
+            printf("\x1b[12;3Hofreciendo camarones.");
+            printf("\x1b[13;3HAsi los hipnotiza.");
+            printf("\x1b[14;3H");
+            printf("\x1b[15;3HRol: CONTROL");
+            printf("\x1b[16;3HCuracion poderosa y");
+            printf("\x1b[17;3Hdrenaje de vida.");
+            break;
+        case 3:
+            printf("\x1b[3;4H%s\n\n", NOMBRES_PERSONAJES[3]);
+            printf("\x1b[5;3HUn sacerdote franciscano");
+            printf("\x1b[6;3Hque escapaba del convento");
+            printf("\x1b[7;3Hpara irse de farra.");
+            printf("\x1b[8;3H");
+            printf("\x1b[9;3HPisaba la estatua de");
+            printf("\x1b[10;3HCristo, quien le pregunto:");
+            printf("\x1b[11;3HHasta cuando Padre");
+            printf("\x1b[12;3HAlmeida? El respondio:");
+            printf("\x1b[13;3HHasta la vuelta, Senor.");
+            printf("\x1b[14;3H");
+            printf("\x1b[15;3HRol: COMBO");
+            printf("\x1b[16;3HPoca defensa pero");
+            printf("\x1b[17;3Hmucho robo de cartas.");
+            break;
+        case 4:
+            printf("\x1b[3;4H%s\n\n", NOMBRES_PERSONAJES[4]);
+            printf("\x1b[5;3HMisteriosa mujer que");
+            printf("\x1b[6;3Hcamina por Guayaquil a");
+            printf("\x1b[7;3Hla medianoche.");
+            printf("\x1b[8;3HSu perfume embriagador");
+            printf("\x1b[9;3Hatrae a los hombres.");
+            printf("\x1b[10;3H");
+            printf("\x1b[11;3HAl quitarse el velo,");
+            printf("\x1b[12;3Hmuestra su craneo y");
+            printf("\x1b[13;3Hun olor a muerte que");
+            printf("\x1b[14;3Hparaliza a sus victimas.");
+            printf("\x1b[15;3H");
+            printf("\x1b[16;3HRol: TERROR");
+            printf("\x1b[17;3HDebuffs, escudos y");
+            printf("\x1b[18;3Hdano masivo.");
+            break;
+        case 5:
+            printf("\x1b[3;4H%s\n\n", NOMBRES_PERSONAJES[5]);
+            printf("\x1b[5;3HNina muy golosa.");
+            printf("\x1b[6;3HSu madre le pidio");
+            printf("\x1b[7;3Hcomprar tripas, pero");
+            printf("\x1b[8;3Hse gasto el dinero.");
+            printf("\x1b[9;3H");
+            printf("\x1b[10;3HPara enganarla, robo");
+            printf("\x1b[11;3Hlas tripas de un muerto.");
+            printf("\x1b[12;3HEl espiritu la busco");
+            printf("\x1b[13;3Hgritando por sus tripas.");
+            printf("\x1b[14;3H");
+            printf("\x1b[15;3HRol: AGRESOR");
+            printf("\x1b[16;3HAtaques freneticos y");
+            printf("\x1b[17;3Hcomportamiento salvaje.");
+            break;
+        case 6:
+            printf("\x1b[3;4H%s\n\n", NOMBRES_PERSONAJES[6]);
+            printf("\x1b[5;3HEl gallo de bronce de");
+            printf("\x1b[6;3Hla Catedral cobro vida");
+            printf("\x1b[7;3Hpara darle una leccion");
+            printf("\x1b[8;3Ha Don Ramon Ayala,");
+            printf("\x1b[9;3Hun hombre jactancioso.");
+            printf("\x1b[10;3H");
+            printf("\x1b[11;3HDespues de que lo");
+            printf("\x1b[12;3Hinsultara repetidas veces,");
+            printf("\x1b[13;3Hel ave dorada bajo a");
+            printf("\x1b[14;3Hpicotearlo sin piedad.");
+            printf("\x1b[15;3H");
+            printf("\x1b[16;3HRol: EQUILIBRADO");
+            printf("\x1b[17;3HAtaques desde el aire,");
+            printf("\x1b[18;3Hbuena curacion.");
+            break;
+        case 7:
+            printf("\x1b[3;4H%s\n\n", NOMBRES_PERSONAJES[7]);
+            printf("\x1b[5;3HEl espectro de un");
+            printf("\x1b[6;3Hsacerdote condenado");
+            printf("\x1b[7;3Ha vagar sin su cabeza");
+            printf("\x1b[8;3Hpor sus terribles pecados.");
+            printf("\x1b[9;3H");
+            printf("\x1b[10;3HSu silueta oscura");
+            printf("\x1b[11;3Hatormenta las calles,");
+            printf("\x1b[12;3Hemanando un frio");
+            printf("\x1b[13;3Hsobrenatural a su paso.");
+            printf("\x1b[14;3H");
+            printf("\x1b[15;3HRol: MAGIA");
+            printf("\x1b[16;3HDano magico norme,");
+            printf("\x1b[17;3Himposible de bloquear.");
+            break;
+        case 8:
+            printf("\x1b[3;4H%s\n\n", NOMBRES_PERSONAJES[8]);
+            printf("\x1b[5;3HUna criatura salvaje");
+            printf("\x1b[6;3Hde los paramos andinos.");
+            printf("\x1b[7;3HMitad nino, mitad bestia,");
+            printf("\x1b[8;3Hprotege a los animales.");
+            printf("\x1b[9;3H");
+            printf("\x1b[10;3HTiene una agresividad");
+            printf("\x1b[11;3Hdesmedida y ataca con");
+            printf("\x1b[12;3Hfuria incontrolable a");
+            printf("\x1b[13;3Hquien falte el respeto.");
+            printf("\x1b[14;3H");
+            printf("\x1b[15;3HRol: SALVAJE");
+            printf("\x1b[16;3HAtaques brutales puros");
+            printf("\x1b[17;3Hcon nula defensa.");
+            break;
+        case 9:
+            printf("\x1b[3;4H%s\n\n", NOMBRES_PERSONAJES[9]);
+            printf("\x1b[5;3HEl alma en pena de");
+            printf("\x1b[6;3Huna mujer que perdio a");
+            printf("\x1b[7;3Hsu hijo en un rio.");
+            printf("\x1b[8;3H");
+            printf("\x1b[9;3HVaga por las orillas");
+            printf("\x1b[10;3Hllorando sin consuelo.");
+            printf("\x1b[11;3HSu inmenso dolor");
+            printf("\x1b[12;3Hmarchita las plantas y");
+            printf("\x1b[13;3Hhiela la sangre.");
+            printf("\x1b[14;3H");
+            printf("\x1b[15;3HRol: TRISTEZA");
+            printf("\x1b[16;3HMucha curacion base y");
+            printf("\x1b[17;3Hescudos impenetrables.");
+            break;
+        case 10:
+            printf("\x1b[3;4H%s\n\n", NOMBRES_PERSONAJES[10]);
+            printf("\x1b[5;3HEl espiritu de un bebe");
+            printf("\x1b[6;3Hno bautizado que fue");
+            printf("\x1b[7;3Habandonado. Su llanto");
+            printf("\x1b[8;3Hdespierta compasion.");
+            printf("\x1b[9;3H");
+            printf("\x1b[10;3HPero cuando un viajero");
+            printf("\x1b[11;3Hlo toma en sus brazos,");
+            printf("\x1b[12;3Hel bebe muestra dientes");
+            printf("\x1b[13;3Hde demonio y ataca.");
+            printf("\x1b[14;3H");
+            printf("\x1b[15;3HRol: SORPRESA");
+            printf("\x1b[16;3HRobo de cartas");
+            printf("\x1b[17;3Hy ataques enganosos.");
+            break;
+        case 11:
+            printf("\x1b[3;4H%s\n\n", NOMBRES_PERSONAJES[11]);
+            printf("\x1b[5;3HEl fantasma de una");
+            printf("\x1b[6;3Hmujer que ronda un");
+            printf("\x1b[7;3Hantiguo tamarindo.");
+            printf("\x1b[8;3H");
+            printf("\x1b[9;3HLlora buscando consuelo,");
+            printf("\x1b[10;3Hpero si alguien se le");
+            printf("\x1b[11;3Hacerca, revela un rostro");
+            printf("\x1b[12;3Hque provoca la locura.");
+            printf("\x1b[13;3H");
+            printf("\x1b[14;3HRol: TRAMPA");
+            printf("\x1b[15;3HDrenaje de vida,");
+            printf("\x1b[16;3Hilusiones y control.");
+            break;
         }
     } else if (gs->fase == GAME_RESULT) {
         consoleSelect(subConsole);
