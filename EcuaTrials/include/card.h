@@ -45,6 +45,10 @@ typedef struct {
     const char* lore1;  // Linea 1 del lore
     const char* lore2;  // Linea 2 del lore
     const char* lore3;  // Linea 3 del lore
+    const char* lore4;  // Linea 4 del lore
+    const char* lore5;  // Linea 5 del lore
+    const char* lore6;  // Linea 6 del lore
+    const char* lore7;  // Linea 7 del lore
 } CardData;
 
 // Escudo activo en el campo

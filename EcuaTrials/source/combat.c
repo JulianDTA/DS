@@ -55,6 +55,9 @@ void combat_init(CombatState* cs,
     cs->dragged_card_idx = -1;
     cs->drag_x = 0;
     cs->drag_y = 0;
+    cs->last_tapped_idx = -1;
+    cs->double_tap_timer = 0;
+    cs->force_play = false;
 
     // Mano inicial: 3 cartas cada uno
     deck_draw(&cs->jugador.deck, 3);
@@ -254,6 +257,7 @@ void combat_ai_turn(CombatState* cs) {
 }
 
 void combat_update(CombatState* cs, int keys_down, touchPosition* touch) {
+    if (cs->double_tap_timer > 0) cs->double_tap_timer--;
     switch (cs->fase) {
         case COMBAT_START:
             cs->fase = COMBAT_PLAYER_DRAW;
@@ -305,6 +309,14 @@ void combat_update(CombatState* cs, int keys_down, touchPosition* touch) {
                             cs->dragged_card_idx = i;
                             cs->drag_x = touch->px - 16;
                             cs->drag_y = touch->py - 32;
+                            
+                            // Check double tap
+                            if (cs->last_tapped_idx == i && cs->double_tap_timer > 0) {
+                                cs->force_play = true;
+                            }
+                            cs->last_tapped_idx = i;
+                            cs->double_tap_timer = 20; // ~1/3 of a second to double tap
+                            
                             break;
                         }
                     }
@@ -316,7 +328,7 @@ void combat_update(CombatState* cs, int keys_down, touchPosition* touch) {
                 }
             } else if (tch_up & KEY_TOUCH) {
                 if (cs->dragged_card_idx >= 0) {
-                    if (touch->py < 60) { // Drop zone (borde superior)
+                    if (cs->drag_y < 60 || cs->force_play) { // Drop zone (borde superior)
                         if (cs->ya_robo_turno) {
                             cs->jugador.puede_jugar_otra = false;
                             const CardData* carta = deck_play_from_hand(&cs->jugador.deck, cs->dragged_card_idx);
@@ -349,7 +361,8 @@ void combat_update(CombatState* cs, int keys_down, touchPosition* touch) {
                             combat_log(cs, "Debes robar mazo primero!");
                         }
                     }
-                    cs->dragged_card_idx = -1;
+cs->dragged_card_idx = -1;
+                    cs->force_play = false;
                 }
             }
             break;

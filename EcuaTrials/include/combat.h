@@ -54,6 +54,11 @@ typedef struct {
     int drag_x;
     int drag_y;
     
+    // Double tap
+    int last_tapped_idx;
+    int double_tap_timer;
+    bool force_play;
+    
 } CombatState;
 
 void combat_init(CombatState* cs,

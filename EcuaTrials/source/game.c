@@ -1,4 +1,5 @@
 #include "game.h"
+#include "graphics.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -160,7 +161,26 @@ static void print_match_result(int winner, int loser, bool player_won) {
 }
 
 void game_draw_top(GameState* gs) {
-    // Top screen is now a background image.
+    oamClear(&oamMain, 0, 128);
+    
+    if (gs->fase == GAME_COMBAT) {
+        consoleSelect(topConsole);
+        printf("\x1b[2J");
+        
+        printf("\x1b[11;3HHP: %d", gs->combate.jugador.hp);
+        printf("\x1b[11;24HHP: %d", gs->combate.rival.hp);
+        
+        if (gfx_tunda) {
+            // Jugador a la izquierda (Tunda)
+            oamSet(&oamMain, 0, 10, 100, 0, 0, SpriteSize_64x64, SpriteColorFormat_256Color, 
+                   gfx_tunda, -1, false, false, false, false, false);
+        }
+        if (gfx_cantuna) {
+            // Rival a la derecha (Cantuna)
+            oamSet(&oamMain, 1, 182, 100, 0, 0, SpriteSize_64x64, SpriteColorFormat_256Color, 
+                   gfx_cantuna, -1, false, false, false, false, false);
+        }
+    }
 }
 
 #include "graphics.h"
@@ -172,12 +192,61 @@ void game_draw_bottom(GameState* gs) {
     if (gs->fase == GAME_COMBAT) {
         CombatState* cs = &gs->combate;
         
+        consoleSelect(subConsole);
+        printf("\x1b[2J");
+        
+        if (cs->dragged_card_idx != -1) {
+            const CardData* hover = cs->jugador.deck.mano[cs->dragged_card_idx];
+            
+            int len = 0;
+            while(hover->nombre[len]) len++;
+            
+            // TITULO: Convertido a mayusculas para que simule ser mas grande
+            char upper_name[64];
+            for (int j = 0; j < len; j++) {
+                if (hover->nombre[j] >= 'a' && hover->nombre[j] <= 'z') 
+                    upper_name[j] = hover->nombre[j] - 32;
+                else
+                    upper_name[j] = hover->nombre[j];
+            }
+            upper_name[len] = '\0';
+            printf("\x1b[5;%dH%s", 16 - len/2, upper_name);
+            
+            // ZONA AZUL: Lore a la izquierda (Columna 6, Fila 7 para subirlo un poco)
+            if (hover->lore1) printf("\x1b[7;6H%s", hover->lore1);
+            if (hover->lore2) printf("\x1b[8;6H%s", hover->lore2);
+            if (hover->lore3) printf("\x1b[9;6H%s", hover->lore3);
+            if (hover->lore4) printf("\x1b[10;6H%s", hover->lore4);
+            if (hover->lore5) printf("\x1b[11;6H%s", hover->lore5);
+            if (hover->lore6) printf("\x1b[12;6H%s", hover->lore6);
+            if (hover->lore7) printf("\x1b[13;6H%s", hover->lore7);
+            
+            // ZONA VERDE/MORADA: Efecto a la derecha (Fila 7)
+            printf("\x1b[7;21HEfecto:");
+            if (hover->efectos & FX_ATTACK) {
+                printf("\x1b[8;21HATQ: %d", hover->ataque);
+            } else if (hover->efectos & FX_SHIELD) {
+                printf("\x1b[8;21HDEF: %d", hover->escudo);
+            } else if (hover->efectos & FX_HEAL) {
+                printf("\x1b[8;21HCUR: %d", hover->curacion);
+            } else if (hover->efectos & FX_AURA) {
+                printf("\x1b[8;21HAURA");
+            }
+        } else {
+            printf("\x1b[5;9H--- TABLERO ---");
+            printf("\x1b[10;7HArrastra una carta");
+            printf("\x1b[11;7Hpara leer su lore.");
+        }
+        
+        // Poner Mazo debajo de la carta (Fila 23, Columna 23)
+        printf("\x1b[23;23HMazo: %d", cs->jugador.deck.mazo_top); // Blanco para legibilidad
+        
         // Dibujar el Mazo (esquina inferior derecha)
         if (gfx_card_gfx_mem) {
             oamSet(&oamSub, 0, 200, 110, 0, 0, SpriteSize_32x64, SpriteColorFormat_256Color, 
                    gfx_card_gfx_mem, -1, false, false, false, false, false);
         }
-               
+
         // Dibujar las cartas en la mano
         for (int i = 0; i < cs->jugador.deck.mano_size; i++) {
             const CardData* c = cs->jugador.deck.mano[i];
@@ -185,22 +254,18 @@ void game_draw_bottom(GameState* gs) {
             int x = i * 36 + 10;
             int y = 120;
             
-            // Si esta siendo arrastrada
             if (i == cs->dragged_card_idx) {
-                x = cs->drag_x;
-                y = cs->drag_y;
+                x = cs->drag_x - 16;
+                y = cs->drag_y - 32;
             }
             
-            // Color de la carta
-            int pal = 0; // default blanco
-            if (c->efectos & FX_ATTACK) pal = 1;      // Rojo
-            else if (c->efectos & FX_SHIELD) pal = 2; // Azul
-            else if (c->efectos & FX_HEAL) pal = 3;   // Verde
-            else pal = 4;                             // Morado
+            oamSet(&oamSub, i + 1, x, y, 0, 0, SpriteSize_32x64, SpriteColorFormat_256Color, 
+                   gfx_card_gfx_mem, -1, false, false, false, false, false);
             
-            if (gfx_card_gfx_mem) {
-                oamSet(&oamSub, i + 1, x, y, 0, pal, SpriteSize_32x64, SpriteColorFormat_256Color, 
-                       gfx_card_gfx_mem, -1, false, false, false, false, false);
+            int col = (x / 8) + 1;
+            int row = (y / 8) + 1;
+            if (col >= 1 && col <= 32 && row >= 1 && row <= 24) {
+                // (Text overlay removed for now)
             }
         }
     }

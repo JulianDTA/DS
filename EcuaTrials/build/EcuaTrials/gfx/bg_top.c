@@ -5,12 +5,12 @@
 //
 //	bg_top, 256x256@8, 
 //	Transparent color : FF,00,FF
-//	+ palette 256 entries, not compressed
+//	+ palette 240 entries, not compressed
 //	+ 770 tiles (t|f reduced) not compressed
 //	+ regular map (in SBBs), not compressed, 32x32 
-//	Total size: 512 + 49280 + 2048 = 51840
+//	Total size: 480 + 49280 + 2048 = 51808
 //
-//	Time-stamp: 2026-09-01, 01:40:06
+//	Time-stamp: 2026-09-02, 03:42:50
 //	Exported by Cearn's GBA Image Transmogrifier, v1.23.0
 //	( http://www.coranac.com/projects/#grit )
 //
@@ -1899,7 +1899,7 @@ const unsigned short bg_topMap[1024] __attribute__((aligned(4))) __attribute__((
 	0x0301,0x0301,0x0301,0x0301,0x0301,0x0301,0x0301,0x0301,
 };
 
-const unsigned short bg_topPal[256] __attribute__((aligned(4))) __attribute__((visibility("hidden")))=
+const unsigned short bg_topPal[240] __attribute__((aligned(4))) __attribute__((visibility("hidden")))=
 {
 	0x7C1F,0x73DF,0x6BDE,0x6BBE,0x6BBE,0x67BE,0x67BE,0x67BE,
 	0x67BE,0x67BE,0x67BE,0x67BE,0x7BDC,0x7FDA,0x67BD,0x679D,
@@ -1934,8 +1934,6 @@ const unsigned short bg_topPal[256] __attribute__((aligned(4))) __attribute__((v
 	0x3D89,0x3D89,0x3188,0x3149,0x3147,0x2148,0x2146,0x1D2C,
 	0x212A,0x1D0B,0x18EB,0x2929,0x2109,0x1CE9,0x18E9,0x2908,
 	0x20E8,0x20E8,0x1CE8,0x2125,0x1CE6,0x1D04,0x18E4,0x14C9,
-	0x18C8,0x1CC7,0x14A7,0x20C6,0x18A6,0x1CC5,0x10C3,0x1087,
-	0x1486,0x1885,0x1083,0x1065,0x0C44,0x1042,0x0C02,0x7FFF,
 };
 
 //}}BLOCK(bg_top)

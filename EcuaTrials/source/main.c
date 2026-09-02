@@ -12,12 +12,12 @@ static GameState gameState;
 
 void init_hardware() {
     // Pantalla Superior (Main): Fondos 2D y Sprites
-    videoSetMode(MODE_0_2D | DISPLAY_SPR_ACTIVE | DISPLAY_SPR_1D | DISPLAY_BG0_ACTIVE);
+    videoSetMode(MODE_0_2D | DISPLAY_SPR_ACTIVE | DISPLAY_SPR_1D | DISPLAY_BG0_ACTIVE | DISPLAY_BG3_ACTIVE);
     vramSetBankA(VRAM_A_MAIN_BG);
     vramSetBankB(VRAM_B_MAIN_SPRITE);
     
     // Pantalla Inferior (Sub): Fondos 2D y Sprites
-    videoSetModeSub(MODE_0_2D | DISPLAY_SPR_ACTIVE | DISPLAY_SPR_1D | DISPLAY_BG0_ACTIVE);
+    videoSetModeSub(MODE_0_2D | DISPLAY_SPR_ACTIVE | DISPLAY_SPR_1D | DISPLAY_BG0_ACTIVE | DISPLAY_BG3_ACTIVE);
     vramSetBankC(VRAM_C_SUB_BG);
     vramSetBankD(VRAM_D_SUB_SPRITE);
     
@@ -36,7 +36,7 @@ int main(void) {
         swiWaitForVBlank();
         
         // Actualizar hardware OAM
-        //oamUpdate(&oamMain);
+        oamUpdate(&oamMain);
         oamUpdate(&oamSub);
         
         scanKeys();
