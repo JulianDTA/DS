@@ -20,6 +20,8 @@ typedef struct {
     int rival_elegido;
     CombatState combate;
     bool isMainOnBottom;
+    bool top_dirty;
+    bool bottom_dirty;
 } GameState;
 
 void game_init(GameState* gs);

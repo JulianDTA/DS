@@ -49,6 +49,8 @@ void game_init(GameState* gs) {
     gs->fase = GAME_TITLE;
     gs->personaje_elegido = 0;
     gs->rival_elegido = 1;
+    gs->top_dirty = true;
+    gs->bottom_dirty = true;
 }
 
 void game_update(GameState* gs, int keys_down, touchPosition* touch) {
@@ -62,6 +64,8 @@ void game_update(GameState* gs, int keys_down, touchPosition* touch) {
         case GAME_TITLE:
             if (keys_down & KEY_START) {
                 gs->fase = GAME_SELECT_CHAR;
+                gs->top_dirty = true;
+                gs->bottom_dirty = true;
             }
             break;
 
@@ -69,10 +73,14 @@ void game_update(GameState* gs, int keys_down, touchPosition* touch) {
             if (keys_down & KEY_LEFT) {
                 gs->personaje_elegido--;
                 if (gs->personaje_elegido < 0) gs->personaje_elegido = 11;
+                gs->top_dirty = true;
+                gs->bottom_dirty = true;
             }
             if (keys_down & KEY_RIGHT) {
                 gs->personaje_elegido++;
                 if (gs->personaje_elegido > 11) gs->personaje_elegido = 0;
+                gs->top_dirty = true;
+                gs->bottom_dirty = true;
             }
 
             if (keys_down & KEY_A) {
@@ -87,10 +95,14 @@ void game_update(GameState* gs, int keys_down, touchPosition* touch) {
                     get_deck_size_for_char(gs->rival_elegido));
 
                 gs->fase = GAME_COMBAT;
+                gs->top_dirty = true;
+                gs->bottom_dirty = true;
             }
 
             if (keys_down & KEY_B) {
                 gs->fase = GAME_TITLE;
+                gs->top_dirty = true;
+                gs->bottom_dirty = true;
             }
             break;
 
@@ -100,6 +112,8 @@ void game_update(GameState* gs, int keys_down, touchPosition* touch) {
             if (gs->combate.fase == COMBAT_WIN || gs->combate.fase == COMBAT_LOSE) {
                 if (keys_down & KEY_START) {
                     gs->fase = GAME_RESULT;
+                    gs->top_dirty = true;
+                    gs->bottom_dirty = true;
                 }
             }
             break;
@@ -107,6 +121,8 @@ void game_update(GameState* gs, int keys_down, touchPosition* touch) {
         case GAME_RESULT:
             if (keys_down & KEY_START) {
                 gs->fase = GAME_TITLE;
+                gs->top_dirty = true;
+                gs->bottom_dirty = true;
             }
             break;
     }
@@ -145,31 +161,34 @@ static void print_match_result(int winner, int loser, bool player_won) {
 }
 
 void game_draw_top(GameState* gs) {
+    if (gs->fase != GAME_COMBAT && !gs->top_dirty) return;
+    gs->top_dirty = false;
+
     oamClear(&oamMain, 0, 128);
     consoleSelect(topConsole);
     printf("\x1b[2J");
     
     if (gs->fase == GAME_TITLE) {
-        printf("\x1b[4;8HECUATRIALS\n");
-        printf("\x1b[6;5HPulsa START para jugar\n");
+        printf("\x1b[32m\x1b[4;8HECUATRIALS\n");
+        printf("\x1b[6;5HPulsa START para jugar\x1b[39m\n");
     } else if (gs->fase == GAME_SELECT_CHAR) {
-        printf("\x1b[2;5HSELECCION DE PERSONAJE\n");
-        printf("\x1b[4;8H%s\n", NOMBRES_PERSONAJES[gs->personaje_elegido]);
-        printf("\x1b[6;5HPulsa A para confirmar\n");
-        printf("\x1b[7;5HPulsa B para volver\n");
+        printf("\x1b[32m\x1b[2;5HSELECCION DE PERSONAJE\n");
+        printf("\x1b[5;10H%s\n", NOMBRES_PERSONAJES[gs->personaje_elegido]);
+        printf("\x1b[21;5HPulsa A para confirmar\n");
+        printf("\x1b[22;5HPulsa B para volver\x1b[39m\n");
     } else if (gs->fase == GAME_RESULT) {
-        printf("\x1b[4;8HFIN DEL COMBATE\n");
-        printf("\x1b[6;5HPulsa START para salir\n");
+        printf("\x1b[32m\x1b[4;8HFIN DEL COMBATE\n");
+        printf("\x1b[6;5HPulsa START para salir\x1b[39m\n");
     } else if (gs->fase == GAME_COMBAT) {
         // Player (Left) - moved to bottom of top screen
-        printf("\x1b[21;1H%s", gs->combate.jugador.nombre);
+        printf("\x1b[32m\x1b[21;1H%s", gs->combate.jugador.nombre);
         printf("\x1b[22;1HHP: %d/%d", gs->combate.jugador.hp, gs->combate.jugador.max_hp);
         printf("\x1b[23;1HDEF: %d", deck_get_total_shield(&gs->combate.jugador.deck));
         
         // Rival (Right) - moved to bottom of top screen
         printf("\x1b[21;18H%s", gs->combate.rival.nombre);
         printf("\x1b[22;18HHP: %d/%d", gs->combate.rival.hp, gs->combate.rival.max_hp);
-        printf("\x1b[23;18HDEF: %d", deck_get_total_shield(&gs->combate.rival.deck));
+        printf("\x1b[23;18HDEF: %d\x1b[39m", deck_get_total_shield(&gs->combate.rival.deck));
         
         // Combat Log (Center Top, Rows 2-7) stays in the sky!
         for (int i = 0; i < gs->combate.log_count; i++) {
@@ -177,7 +196,7 @@ void game_draw_top(GameState* gs) {
             int len = 0; while (msg[len]) len++;
             int col = (32 - len) / 2;
             if (col < 1) col = 1;
-            printf("\x1b[%d;%dH%s", i + 2, col, msg);
+            printf("\x1b[%d;%dH\x1b[32m%s\x1b[39m", i + 12, col, msg);
         }
 
         u16* p_gfx = (gs->personaje_elegido == 2) ? gfx_tunda : gfx_cantuna;
@@ -199,6 +218,9 @@ void game_draw_top(GameState* gs) {
 #include "graphics.h"
 
 void game_draw_bottom(GameState* gs) {
+    if (gs->fase != GAME_COMBAT && !gs->bottom_dirty) return;
+    gs->bottom_dirty = false;
+
     // Limpiar OAM temporalmente
     oamClear(&oamSub, 0, 128);
 
@@ -226,25 +248,26 @@ void game_draw_bottom(GameState* gs) {
             printf("\x1b[5;%dH%s", 16 - len/2, upper_name);
             
             // ZONA AZUL: Lore a la izquierda (Columna 6, Fila 7 para subirlo un poco)
-            if (hover->lore1) printf("\x1b[7;6H%s", hover->lore1);
-            if (hover->lore2) printf("\x1b[8;6H%s", hover->lore2);
-            if (hover->lore3) printf("\x1b[9;6H%s", hover->lore3);
-            if (hover->lore4) printf("\x1b[10;6H%s", hover->lore4);
-            if (hover->lore5) printf("\x1b[11;6H%s", hover->lore5);
-            if (hover->lore6) printf("\x1b[12;6H%s", hover->lore6);
-            if (hover->lore7) printf("\x1b[13;6H%s", hover->lore7);
+            if (hover->lore1) printf("\x1b[7;3H%s", hover->lore1);
+            if (hover->lore2) printf("\x1b[8;3H%s", hover->lore2);
+            if (hover->lore3) printf("\x1b[9;3H%s", hover->lore3);
+            if (hover->lore4) printf("\x1b[10;3H%s", hover->lore4);
+            if (hover->lore5) printf("\x1b[11;3H%s", hover->lore5);
+            if (hover->lore6) printf("\x1b[12;3H%s", hover->lore6);
+            if (hover->lore7) printf("\x1b[13;3H%s", hover->lore7);
             
             // ZONA VERDE/MORADA: Efecto a la derecha (Fila 7)
             printf("\x1b[7;21HEfecto:");
-            if (hover->efectos & FX_ATTACK) {
-                printf("\x1b[8;21HATQ: %d", hover->ataque);
-            } else if (hover->efectos & FX_SHIELD) {
-                printf("\x1b[8;21HDEF: %d", hover->escudo);
-            } else if (hover->efectos & FX_HEAL) {
-                printf("\x1b[8;21HCUR: %d", hover->curacion);
-            } else if (hover->efectos & FX_AURA) {
-                printf("\x1b[8;21HAURA");
-            }
+            int ey = 8;
+            if (hover->efectos & FX_ATTACK) printf("\x1b[%d;21HATQ: %d", ey++, hover->ataque);
+            if (hover->efectos & FX_SHIELD) printf("\x1b[%d;21HDEF: %d", ey++, hover->escudo);
+            if (hover->efectos & FX_HEAL) printf("\x1b[%d;21HCUR: %d", ey++, hover->curacion);
+            if (hover->efectos & FX_DRAW) printf("\x1b[%d;21HRoba %d", ey++, hover->robar);
+            if (hover->efectos & FX_STEAL_HAND) printf("\x1b[%d;21HRoba Mano", ey++);
+            if (hover->efectos & FX_STEAL_DECK) printf("\x1b[%d;21HRoba Mazo", ey++);
+            if (hover->efectos & FX_STEAL_DISCARD) printf("\x1b[%d;21HRoba Cem", ey++);
+            if (hover->efectos & FX_PLAY_AGAIN) printf("\x1b[%d;21H+Juega", ey++);
+            if (hover->efectos & FX_AURA) printf("\x1b[%d;21HAURA", ey++);
         } else {
             printf("\x1b[5;9H--- TABLERO ---");
             printf("\x1b[10;7HArrastra una carta");

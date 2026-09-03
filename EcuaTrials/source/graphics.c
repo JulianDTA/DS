@@ -24,9 +24,9 @@ void gfx_init() {
     topConsole = consoleInit(&topConsoleData, 3, BgType_Text4bpp, BgSize_T_256x256, 4, 6, true, true);
     bgSetPriority(topConsole->bgId, 0);
     // Configurar color de texto
-    BG_PALETTE[255] = RGB15(0, 0, 0); // Negro
+        BG_PALETTE[255] = RGB15(0, 0, 0); // Negro
     BG_PALETTE[240] = 0; // Transparente
-    BG_PALETTE[241] = RGB15(0, 0, 0); // Negro
+    BG_PALETTE[243] = RGB15(0, 31, 0); // Verde Fosforescente
     
     // Inicializar consola inferior (Lore)
 
